@@ -9,9 +9,7 @@
 # Model programmed by Nathaniel Hendrix (nhendrix@uw.edu)
 
 # Set demographic parameters
-start_age <- 50
-time_horizon <- 10 #in years
-n <- 100 #population size
+n <- 1000000 #population size
 p_b <- 0.33 #percentage of population Black
 p_w <- 0.33 #percentage of population White
 p_o <- 0.34 #percentage of population other race
@@ -26,241 +24,128 @@ p_war_w <- 0.1 #prevalence of warfarin variant among White patients
 p_war_o <- 0.1 #prevalence of warfarin variant among other race patients
 discount <- 0.03
 
-# Set program costs
-alert_pgm_cost <- 4000 #cost of setting up alert program (in dollars)
-alert_mtn_cost <- 100 #annual alert maintenance cost (in dollars)
+p_clo <- p_clo_b*p_b + p_clo_w*p_w + p_clo_o*p_o #population prevalence of clopidogrel variant
+p_sim <- p_sim_b*p_b + p_sim_w*p_w + p_sim_o*p_o #population prevalence of simvastatin variant
+p_war <- p_war_b*p_b + p_war_w*p_w + p_war_o*p_o #population prevalence of warfarin variant
 
-# Set program probabilities
-# Refers to the probability of switching from target drug to alternative given alert or no alert
-clo_alert_pr <- 0.9
-clo_no_alert_pr <- 0.1
-sim_alert_pr <- 0.9
-sim_no_alert_pr <- 0.1
-war_alert_pr <- 0.9
-war_no_alert_pr <- 0.1
-
-# Set incremental drug costs and QALYs
-# These detail the incremental costs and QALYs of **switching** from target drug to alternative drug.
-# Thus, e.g., of switching from clopidogrel to prasugrel.
-# Note that warfarin involves switching to an alternative dosing schedule, not an alternative drug.
-clo_inc_cost <- 1100
-clo_inc_qaly <- 0.03
-sim_inc_cost <- 200
-sim_inc_qaly <- 0.02
-war_inc_cost <- 300
-war_inc_qaly <- 0.01
-
-# Get US life tables
-# To determine whether patient receives rx for target drug before death
+# read input documents
 setwd("D:/ndhen/Dropbox/School/RA/2019/Cost-effectiveness model/R model")
-life_table <- read.csv("ssa_life_table_2016.csv")
-names(life_table)[1] <- "age"
-life_table_trim <- life_table[life_table$age >= start_age,]
-life_table_trim$m_death_inv <- 1 - life_table_trim$m_death
-life_table_trim$f_death_inv <- 1 - life_table_trim$f_death
-m_death_cum <- numeric() # cumulative risk of death by age for men
-for (i in 1:nrow(life_table_trim)) {
-  m_death_cum <- append(m_death_cum,
-                        1 - prod(life_table_trim[1:i,"m_death_inv"]))
-}
-f_death_cum <- numeric() # cumulative risk of death by age for women
-for (i in 1:nrow(life_table_trim)) {
-  f_death_cum <- append(f_death_cum,
-                        1 - prod(life_table_trim[1:i,"f_death_inv"]))
-}
-life_table_trim$m_death_cum <- m_death_cum
-life_table_trim$f_death_cum <- f_death_cum
+ages <- read.csv("plan_age_pattern.csv")
+test <- read.csv("test_pattern.csv")
+drug <- read.csv("new_rx_pattern.csv")
 
-# Set time to medications
-# **NOTE** These aren't real values
-clo_shape <- 2
-clo_scale <- 20
-clo_p <- ecdf(rweibull(10000, clo_shape, clo_scale))
-clo_cum <- clo_p(seq(0,120-start_age,by=1))
-sim_shape <- 3
-sim_scale <- 21
-sim_p <- ecdf(rweibull(10000, sim_shape, sim_scale))
-sim_cum <- sim_p(seq(0,120-start_age,by=1))
-war_shape <- 4
-war_scale <- 22
-war_p <- ecdf(rweibull(10000, war_shape, war_scale))
-war_cum <- war_p(seq(0,120-start_age,by=1))
+# probability of plan modification based on alert / no alert
+p_change_alert <- 0.9
+p_change_no_alert <- 0.1
 
-# Make population
-# This function uses demographic info set above to create demographic profiles for your population.
-# It determines gender, race and variant status for each person. Assumes 50/50 gender split.
-make_pop <- function() {
-  gender_num <- runif(n)
-  race_num <- runif(n)
-  clo_num <- runif(n)
-  sim_num <- runif(n)
-  war_num <- runif(n)
-  clo_rx_num <- runif(n)
-  sim_rx_num <- runif(n)
-  war_rx_num <- runif(n)
-  life_num <- runif(n)
-  pop_out <- data.frame(id = seq(1:n),
-                        gender = ifelse(gender_num < 0.5, "M", "F"),
-                        race = ifelse(race_num < p_b, "B",
-                                      ifelse(race_num > p_b + p_w, "O", "W")))
-  pop_out$clo_var <- (pop_out$race == "B" & clo_num < p_clo_b | 
-                        pop_out$race == "W" & clo_num < p_clo_w | 
-                        pop_out$race == "O" & clo_num < p_clo_o)
-  pop_out$sim_var <- (pop_out$race == "B" & sim_num < p_sim_b | 
-                        pop_out$race == "W" & sim_num < p_sim_w | 
-                        pop_out$race == "O" & sim_num < p_sim_o)
-  pop_out$war_var <- (pop_out$race == "B" & war_num < p_war_b | 
-                        pop_out$race == "W" & war_num < p_war_w | 
-                        pop_out$race == "O" & war_num < p_war_o)
-  pop_out$t_death <- mapply(function(w,x) ifelse(w == "M",
-                                                 nrow(life_table_trim[life_table_trim$m_death_cum < x,]),
-                                                 nrow(life_table_trim[life_table_trim$f_death_cum < x,])),
-                            w = pop_out$gender,
-                            x = life_num)
-  pop_out$t_clo <- mapply(function(w,x) ifelse(w,
-                                               length(clo_cum[clo_cum < x]),
-                                               NA),
-                          w = pop_out$clo_var,
-                          x = clo_rx_num)
-  pop_out$t_sim <- mapply(function(w,x) ifelse(w,
-                                               length(sim_cum[sim_cum < x]),
-                                               NA),
-                          w = pop_out$sim_var,
-                          x = sim_rx_num)
-  pop_out$t_war <- mapply(function(w,x) ifelse(w,
-                                               length(war_cum[war_cum < x]),
-                                               NA),
-                          w = pop_out$war_var,
-                          x = war_num)
-  return(pop_out)
+# qalys and costs of changing pgx
+qaly_change_clo <- 0.05
+cost_change_clo <- 1500
+qaly_change_sim <- 0
+cost_change_sim <- 0
+qaly_change_war <- 0.01
+cost_change_war <- 150
+
+# time horizon (years)
+t_horizon <- 20
+
+# costs associated with alert
+start_up_cost <- 4000
+maint_cost <- 100
+
+# get population by year
+n_age <- data.frame(ages = ages$ages)
+for(i in 1:t_horizon){
+  temp_col <- n * ages$p
+  n_age$temp_col <- temp_col
+  names(n_age)[ncol(n_age)] <- paste0("y", i)
 }
 
-# This function produces a chronological history of the screening program for the time horizon selected.
-# It assumes that a new cohort of patients will be genotyped each year and added to the population 
-# who are eligible for pharmacogenomic alerts.
-make_hist <- function() {
-  set.seed(98405)
-  hist_out <- data.frame(year = seq(1,time_horizon),
-                         living_pop = rep(0,time_horizon),
-                         clo_alert_n = rep(0,time_horizon),
-                         clo_alert_qaly = rep(0,time_horizon),
-                         clo_alert_cost = rep(0,time_horizon),
-                         clo_no_alert_qaly = rep(0,time_horizon),
-                         clo_no_alert_cost = rep(0,time_horizon),
-                         sim_alert_n = rep(0,time_horizon),
-                         sim_alert_qaly = rep(0,time_horizon),
-                         sim_alert_cost = rep(0,time_horizon),
-                         sim_no_alert_qaly = rep(0,time_horizon),
-                         sim_no_alert_cost = rep(0,time_horizon),
-                         war_alert_n = rep(0,time_horizon),
-                         war_alert_qaly = rep(0,time_horizon),
-                         war_alert_cost = rep(0,time_horizon),
-                         war_no_alert_qaly = rep(0,time_horizon),
-                         war_no_alert_cost = rep(0,time_horizon))
-  for(i in 1:time_horizon) {
-    temp_pop <- make_pop()
-    temp_hist <- data.frame(year = seq(1,time_horizon),
-                            living_pop = rep(0,time_horizon),
-                            clo_alert_n = rep(0,time_horizon),
-                            clo_alert_qaly = rep(0,time_horizon),
-                            clo_alert_cost = rep(0,time_horizon),
-                            clo_no_alert_qaly = rep(0,time_horizon),
-                            clo_no_alert_cost = rep(0,time_horizon),
-                            sim_alert_n = rep(0,time_horizon),
-                            sim_alert_qaly = rep(0,time_horizon),
-                            sim_alert_cost = rep(0,time_horizon),
-                            sim_no_alert_qaly = rep(0,time_horizon),
-                            sim_no_alert_cost = rep(0,time_horizon),
-                            war_alert_n = rep(0,time_horizon),
-                            war_alert_qaly = rep(0,time_horizon),
-                            war_alert_cost = rep(0,time_horizon),
-                            war_no_alert_qaly = rep(0,time_horizon),
-                            war_no_alert_cost = rep(0,time_horizon))
-    for(j in i:time_horizon) {
-      clo_rand <- runif(nrow(temp_pop))
-      sim_rand <- runif(nrow(temp_pop))
-      war_rand <- runif(nrow(temp_pop))
-      temp_hist[j,"living_pop"] <- nrow(temp_pop[temp_pop$t_death > 0,])
-      temp_hist[j,"clo_alert_n"] <- nrow(temp_pop[temp_pop$t_clo == 0 & !is.na(temp_pop$t_clo),])
-      temp_hist[j,"clo_alert_qaly"] <- sum(mapply(function(x,y) ifelse(x == 0 & !is.na(x) & y < clo_alert_pr,
-                                                                   clo_inc_qaly,
-                                                                   0),
-                                              x = temp_pop$t_clo,
-                                              y = clo_rand))
-      temp_hist[j,"clo_alert_cost"] <- sum(mapply(function(x,y) ifelse(x == 0 & !is.na(x) & y < clo_alert_pr,
-                                                                       clo_inc_cost,
-                                                                       0),
-                                                  x = temp_pop$t_clo,
-                                                  y = clo_rand))
-      temp_hist[j,"clo_no_alert_qaly"] <- sum(mapply(function(x,y) ifelse(x == 0 & !is.na(x) & y < clo_no_alert_pr,
-                                                                       clo_inc_qaly,
-                                                                       0),
-                                                  x = temp_pop$t_clo,
-                                                  y = clo_rand))
-      temp_hist[j,"clo_no_alert_cost"] <- sum(mapply(function(x,y) ifelse(x == 0 & !is.na(x) & y < clo_no_alert_pr,
-                                                                       clo_inc_cost,
-                                                                       0),
-                                                  x = temp_pop$t_clo,
-                                                  y = clo_rand))
-      temp_hist[j,"sim_alert_n"] <- nrow(temp_pop[temp_pop$t_sim == 0 & !is.na(temp_pop$t_sim),])
-      temp_hist[j,"sim_alert_qaly"] <- sum(mapply(function(x,y) ifelse(x == 0 & !is.na(x) & y < sim_alert_pr,
-                                                                       sim_inc_qaly,
-                                                                       0),
-                                                  x = temp_pop$t_sim,
-                                                  y = sim_rand))
-      temp_hist[j,"sim_alert_cost"] <- sum(mapply(function(x,y) ifelse(x == 0 & !is.na(x) & y < sim_alert_pr,
-                                                                       sim_inc_cost,
-                                                                       0),
-                                                  x = temp_pop$t_sim,
-                                                  y = sim_rand))
-      temp_hist[j,"sim_no_alert_qaly"] <- sum(mapply(function(x,y) ifelse(x == 0 & !is.na(x) & y < sim_no_alert_pr,
-                                                                          sim_inc_qaly,
-                                                                          0),
-                                                     x = temp_pop$t_sim,
-                                                     y = sim_rand))
-      temp_hist[j,"sim_no_alert_cost"] <- sum(mapply(function(x,y) ifelse(x == 0 & !is.na(x) & y < sim_no_alert_pr,
-                                                                          sim_inc_cost,
-                                                                          0),
-                                                     x = temp_pop$t_sim,
-                                                     y = sim_rand))
-      temp_hist[j,"war_alert_n"] <- nrow(temp_pop[temp_pop$t_war == 0 & !is.na(temp_pop$t_war),])
-      temp_hist[j,"war_alert_qaly"] <- sum(mapply(function(x,y) ifelse(x == 0 & !is.na(x) & y < war_alert_pr,
-                                                                       war_inc_qaly,
-                                                                       0),
-                                                  x = temp_pop$t_war,
-                                                  y = war_rand))
-      temp_hist[j,"war_alert_cost"] <- sum(mapply(function(x,y) ifelse(x == 0 & !is.na(x) & y < war_alert_pr,
-                                                                       war_inc_cost,
-                                                                       0),
-                                                  x = temp_pop$t_war,
-                                                  y = war_rand))
-      temp_hist[j,"war_no_alert_qaly"] <- sum(mapply(function(x,y) ifelse(x == 0 & !is.na(x) & y < war_no_alert_pr,
-                                                                          war_inc_qaly,
-                                                                          0),
-                                                     x = temp_pop$t_war,
-                                                     y = war_rand))
-      temp_hist[j,"war_no_alert_cost"] <- sum(mapply(function(x,y) ifelse(x == 0 & !is.na(x) & y < war_no_alert_pr,
-                                                                          war_inc_cost,
-                                                                          0),
-                                                     x = temp_pop$t_war,
-                                                     y = war_rand))
-      temp_pop$t_death <- temp_pop$t_death - 1
-      temp_pop$t_clo <- temp_pop$t_clo - 1
-      temp_pop$t_sim <- temp_pop$t_sim - 1
-      temp_pop$t_war <- temp_pop$t_war - 1
-    }
-    hist_out <- hist_out + temp_hist
-  }
-  hist_out$year <- seq(1,time_horizon)
-  hist_out$alert_cost <- alert_mtn_cost
-  hist_out[1,"alert_cost"] <- alert_pgm_cost
-  for(i in c(4:7,9:12,14:18)) {
-    hist_out[,i] <- mapply(function(x,y) x * (1 / (1+discount)^y),
-                           x = hist_out[,i],
-                           y = hist_out$year)
-  }
-  return(hist_out)
+# get probability of new clopidogrel rx by year
+p_new_clo <- data.frame(ages = drug$ages)
+for(i in 1:t_horizon){
+  temp_col <- drug$c
+  p_new_clo$temp_col <- temp_col
+  names(p_new_clo)[ncol(p_new_clo)] <- paste0("y", i)
 }
 
-example <- make_hist()
-example
+# get probability of new simvastatin rx by year
+p_new_sim <- data.frame(ages = drug$ages)
+for(i in 1:t_horizon){
+  temp_col <- drug$s
+  p_new_sim$temp_col <- temp_col
+  names(p_new_sim)[ncol(p_new_sim)] <- paste0("y", i)
+}
+
+# get probability of new warfarin rx by year
+p_new_war <- data.frame(ages = drug$ages)
+for(i in 1:t_horizon){
+  temp_col <- drug$w
+  p_new_war$temp_col <- temp_col
+  names(p_new_war)[ncol(p_new_war)] <- paste0("y", i)
+}
+
+# calculate benefit of clopidogrel alert
+n_test <- n_age * test #number tested by age / year
+n_var <- n_test * p_clo #number tested positive for variant
+n_rx <- n_var * p_new_clo
+clo_outcomes <- data.frame(year = seq(1, years),
+                           clo_n_alert = apply(n_rx[,2:ncol(n_rx)],
+                                               2,
+                                               function(x) sum(x)))
+clo_outcomes$clo_alert_q <- clo_outcomes$clo_n_alert * p_change_alert * qaly_change_clo
+clo_outcomes$clo_alert_c <- clo_outcomes$clo_n_alert * p_change_alert * cost_change_clo
+clo_outcomes$clo_noalert_q <- clo_outcomes$clo_n_alert * p_change_no_alert * qaly_change_clo
+clo_outcomes$clo_noalert_c <- clo_outcomes$clo_n_alert * p_change_no_alert * cost_change_clo
+
+# calculate benefit of simvastatin alert
+n_test <- n_age * test #number tested by age / year
+n_var <- n_test * p_sim #number tested positive for variant
+n_rx <- n_var * p_new_sim
+sim_outcomes <- data.frame(year = seq(1, years),
+                           sim_n_alert = apply(n_rx[,2:ncol(n_rx)],
+                                               2,
+                                               function(x) sum(x)))
+sim_outcomes$sim_alert_q <- sim_outcomes$sim_n_alert * p_change_alert * qaly_change_sim
+sim_outcomes$sim_alert_c <- sim_outcomes$sim_n_alert * p_change_alert * cost_change_sim
+sim_outcomes$sim_noalert_q <- sim_outcomes$sim_n_alert * p_change_no_alert * qaly_change_sim
+sim_outcomes$sim_noalert_c <- sim_outcomes$sim_n_alert * p_change_no_alert * cost_change_sim
+
+# calculate benefit of warfarin alert
+n_test <- n_age * test #number tested by age / year
+n_var <- n_test * p_war #number tested positive for variant
+n_rx <- n_var * p_new_war
+war_outcomes <- data.frame(year = seq(1, years),
+                           war_n_alert = apply(n_rx[,2:ncol(n_rx)],
+                                               2,
+                                               function(x) sum(x)))
+war_outcomes$war_alert_q <- war_outcomes$war_n_alert * p_change_alert * qaly_change_war
+war_outcomes$war_alert_c <- war_outcomes$war_n_alert * p_change_alert * cost_change_war
+war_outcomes$war_noalert_q <- war_outcomes$war_n_alert * p_change_no_alert * qaly_change_war
+war_outcomes$war_noalert_c <- war_outcomes$war_n_alert * p_change_no_alert * cost_change_war
+
+# combine drug-specific benefit calculations
+outcomes <- merge(clo_outcomes, sim_outcomes, by = "year")
+outcomes <- merge(outcomes, war_outcomes, by = "year")
+
+# add costs of alert program
+outcomes$alert_cost <- start_up_cost
+outcomes$alert_cost[2:nrow(outcomes)] <- maint_cost
+
+# implement discounting
+for(i in c(3:6,8:11,13:17)) {
+  outcomes[,i] <- mapply(function(x,y) x * (1 / (1 + discount)^(y - 1)),
+                         x = outcomes[,i],
+                         y = outcomes$year)
+}
+
+total <- data.frame(year = outcomes$year,
+                    alert_n = rowSums(outcomes[,c(2,7,12)]),
+                    alert_qaly = rowSums(outcomes[,c(3,8,13)]),
+                    alert_cost = rowSums(outcomes[,c(4,9,14)]),
+                    no_alert_qaly = rowSums(outcomes[,c(5,10,15)]),
+                    no_alert_cost = rowSums(outcomes[,c(6,11,16)]))
+total
+
+cat(paste0("ICER = ", round((sum(total$alert_cost) - sum(total$no_alert_cost))/(sum(total$alert_qaly) - sum(total$no_alert_qaly)),2),
+      "\nCost per alert = ", round((sum(total$alert_cost) - sum(total$no_alert_cost))/sum(total$alert_n),2)))
