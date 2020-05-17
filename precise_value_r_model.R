@@ -89,7 +89,7 @@ for(i in 1:t_horizon){
 n_test <- n_age * test #number tested by age / year
 n_var <- n_test * p_clo #number tested positive for variant
 n_rx <- n_var * p_new_clo
-clo_outcomes <- data.frame(year = seq(1, years),
+clo_outcomes <- data.frame(year = seq(1, t_horizon),
                            clo_n_alert = apply(n_rx[,2:ncol(n_rx)],
                                                2,
                                                function(x) sum(x)))
@@ -102,7 +102,7 @@ clo_outcomes$clo_noalert_c <- clo_outcomes$clo_n_alert * p_change_no_alert * cos
 n_test <- n_age * test #number tested by age / year
 n_var <- n_test * p_sim #number tested positive for variant
 n_rx <- n_var * p_new_sim
-sim_outcomes <- data.frame(year = seq(1, years),
+sim_outcomes <- data.frame(year = seq(1, t_horizon),
                            sim_n_alert = apply(n_rx[,2:ncol(n_rx)],
                                                2,
                                                function(x) sum(x)))
@@ -115,7 +115,7 @@ sim_outcomes$sim_noalert_c <- sim_outcomes$sim_n_alert * p_change_no_alert * cos
 n_test <- n_age * test #number tested by age / year
 n_var <- n_test * p_war #number tested positive for variant
 n_rx <- n_var * p_new_war
-war_outcomes <- data.frame(year = seq(1, years),
+war_outcomes <- data.frame(year = seq(1, t_horizon),
                            war_n_alert = apply(n_rx[,2:ncol(n_rx)],
                                                2,
                                                function(x) sum(x)))
