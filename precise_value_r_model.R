@@ -1,35 +1,48 @@
 # This program performs the cost-effectiveness analysis for alerting on pharmacogenomic interactions.
-# It assumes that patients are proactively genotyped at age 50, and compares a scenario in which
-# alerts are shown to prescribers when they attempt to order a drug with a pharmacogenomic interaction
-# to a scenario in which the genomic data are available in patient data but do not pop up at the time
-# of prescribing
 
 # The three target drugs tested are clopidogrel, simvastatin, and warfarin.
 
 # Model programmed by Nathaniel Hendrix (nhendrix@uw.edu)
 
 # Set demographic parameters
-n <- 1000000 #population size
-p_b <- 0.33 #percentage of population Black
-p_w <- 0.33 #percentage of population White
-p_o <- 0.34 #percentage of population other race
-p_clo_b <- 0.183 #prevalence of clopidogrel variant (poor metabolizers) among Black patients
-p_clo_w <- 0.146 #prevalence of clopidogrel variant (poor metabolizers) among White patients
-p_clo_o <- 0.290 #prevalence of clopidogrel variant (poor metabolizers)among other race patients
-p_sim_b <- 0.039 #prevalence of simvastatin variant (poor or medium metabolizers) among Black patients
-p_sim_w <- 0.311 #prevalence of simvastatin variant (poor or medium metabolizers) among White patients
-p_sim_o <- 0.243 #prevalence of simvastatin variant (poor or medium metabolizers) among other race patients
-p_war_b <- 0.1 #prevalence of warfarin variant among Black patients
-p_war_w <- 0.1 #prevalence of warfarin variant among White patients
-p_war_o <- 0.1 #prevalence of warfarin variant among other race patients
+n <- 100000 #population size
+
+# racial demographics from overall US demographics
+p_a <- 0.06 #percentage of population Asian
+p_b <- 0.13 #percentage of population Black
+p_l <- 0.18 #percentage of population Latinx
+p_w <- 0.60 #percentage of population White
+p_o <- 0.03 #percentage of population other race
+
+# calculated from race-specific prevalence of CYP2C19 alleles *2 through *8
+p_clo_a <- 0.380 #prevalence of clopidogrel variant (poor metabolizers) among Asian (E. Asian) patients
+p_clo_b <- 0.187 #prevalence of clopidogrel variant (poor metabolizers) among Black (African American) patients
+p_clo_l <- 0.129 #prevalence of clopidogrel variant (poor metabolizers) among Latinx (Americas) patients
+p_clo_w <- 0.159 #prevalence of clopidogrel variant (poor metabolizers) among White (Caucasian) patients
+p_clo_o <- 0.275 #prevalence of clopidogrel variant (poor metabolizers) among other race (average of all races) patients
+
+# calculated from race-specific prevalence of CYP2C9 alleles *2, *3, *5, *6, *8, *11
+p_sim_a <- 0.034 #prevalence of simvastatin variant (poor or medium metabolizers) among Asian (E. Asian) patients
+p_sim_b <- 0.136 #prevalence of simvastatin variant (poor or medium metabolizers) among Black (African American) patients
+p_sim_l <- 0.111 #prevalence of simvastatin variant (poor or medium metabolizers) among Latinx (Americas) patients
+p_sim_w <- 0.200 #prevalence of simvastatin variant (poor or medium metabolizers) among White (Caucasian) patients
+p_sim_o <- 0.136 #prevalence of simvastatin variant (poor or medium metabolizers) among other (average of all races) race patients
+
+# assumes that CYP4F2 and VKORC1 are independent 
+p_war_a <- 0.908 #prevalence of warfarin variant among Asian (E. Asian) patients
+p_war_b <- 0.172 #prevalence of warfarin variant among Black (African American) patients
+p_war_l <- 0.607 #prevalence of warfarin variant among Latinx (Americas) patients
+p_war_w <- 0.588 #prevalence of warfarin variant among White (Caucasian) patients
+p_war_o <- 0.562 #prevalence of warfarin variant among other (average of all races) race patients
+
 discount <- 0.03
 
-p_clo <- p_clo_b*p_b + p_clo_w*p_w + p_clo_o*p_o #population prevalence of clopidogrel variant
-p_sim <- p_sim_b*p_b + p_sim_w*p_w + p_sim_o*p_o #population prevalence of simvastatin variant
-p_war <- p_war_b*p_b + p_war_w*p_w + p_war_o*p_o #population prevalence of warfarin variant
+p_clo <- p_clo_a*p_a + p_clo_b*p_b + p_clo_l*p_l + p_clo_w*p_w + p_clo_o*p_o #population prevalence of clopidogrel variant
+p_sim <- p_sim_a*p_a + p_sim_b*p_b + p_sim_l*p_l + p_sim_w*p_w + p_sim_o*p_o #population prevalence of simvastatin variant
+p_war <- p_war_a*p_a + p_war_b*p_b + p_war_l*p_l + p_war_w*p_w + p_war_o*p_o #population prevalence of warfarin variant
 
 # read input documents
-setwd("D:/ndhen/Dropbox/School/RA/2019/Cost-effectiveness model/R model")
+setwd("~/Dropbox (UW)/School/RA/2019/Cost-effectiveness model/R model")
 ages <- read.csv("plan_age_pattern.csv")
 test <- read.csv("test_pattern.csv")
 drug <- read.csv("new_rx_pattern.csv")
@@ -142,7 +155,7 @@ for(i in c(3:6,8:11,13:17)) {
 total <- data.frame(year = outcomes$year,
                     alert_n = rowSums(outcomes[,c(2,7,12)]),
                     alert_qaly = rowSums(outcomes[,c(3,8,13)]),
-                    alert_cost = rowSums(outcomes[,c(4,9,14)]),
+                    alert_cost = rowSums(outcomes[,c(4,9,14,17)]),
                     no_alert_qaly = rowSums(outcomes[,c(5,10,15)]),
                     no_alert_cost = rowSums(outcomes[,c(6,11,16)]))
 total
