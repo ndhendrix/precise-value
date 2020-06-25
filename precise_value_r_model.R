@@ -5,7 +5,7 @@
 # Model programmed by Nathaniel Hendrix (nhendrix@uw.edu)
 
 # Set demographic parameters
-n <- 100000 #population size
+n <- 3200000  #population size
 
 # racial demographics from overall US demographics
 p_a <- 0.06 #percentage of population Asian
@@ -42,7 +42,7 @@ p_sim <- p_sim_a*p_a + p_sim_b*p_b + p_sim_l*p_l + p_sim_w*p_w + p_sim_o*p_o #po
 p_war <- p_war_a*p_a + p_war_b*p_b + p_war_l*p_l + p_war_w*p_w + p_war_o*p_o #population prevalence of warfarin variant
 
 # read input documents
-setwd("~/Dropbox (UW)/School/RA/2019/Cost-effectiveness model/R model")
+setwd("D:/ndhen/Dropbox/School/RA/2019/Cost-effectiveness model/R model")
 ages <- read.csv("plan_age_pattern.csv")
 test <- read.csv("test_pattern.csv")
 drug <- read.csv("new_rx_pattern.csv")
@@ -53,11 +53,11 @@ p_change_no_alert <- 0.1
 
 # qalys and costs of changing pgx
 qaly_change_clo <- 0.05
-cost_change_clo <- 1500
-qaly_change_sim <- 0
-cost_change_sim <- 0
+cost_change_clo <- 1265
+qaly_change_sim <- 0  # simvastatin no longer included
+cost_change_sim <- 0  # as of 6/22
 qaly_change_war <- 0.01
-cost_change_war <- 150
+cost_change_war <- -50
 
 # time horizon (years)
 t_horizon <- 20
@@ -161,4 +161,10 @@ total <- data.frame(year = outcomes$year,
 total
 
 cat(paste0("ICER = ", round((sum(total$alert_cost) - sum(total$no_alert_cost))/(sum(total$alert_qaly) - sum(total$no_alert_qaly)),2),
-      "\nCost per alert = ", round((sum(total$alert_cost) - sum(total$no_alert_cost))/sum(total$alert_n),2)))
+      "\nCost per alert = ", round((sum(total$alert_cost) - sum(total$no_alert_cost))/sum(total$alert_n),2),
+      "\nn alert = ",sum(total$alert_n),
+      "\nadmin cost per alert = ", round(sum(outcomes$alert_cost)/sum(total$alert_n),2),
+      "\nreg change cost per alert = ", round((sum(total$alert_cost) - sum(outcomes$alert_cost) - 
+                                                 sum(total$no_alert_cost))/sum(total$alert_n),2)))
+
+
