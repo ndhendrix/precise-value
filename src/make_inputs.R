@@ -1,7 +1,5 @@
-
 # Testing pattern on initial base case: 10% each year while age 55-59
 make_test_pattern <- function() {
-  setwd("D:/ndhen/Dropbox/School/RA/2019/Cost-effectiveness model/precise-value/")
   df <- data.frame(ages = seq(18, 100),
                    y1 = c(rep(0, start_age_current - 18),
                           rep(test_rate_current, screen_dur_current),
@@ -17,14 +15,13 @@ make_test_pattern <- function() {
               c(1,2),
               function(x) min(x, 1))
   
-  write.csv(df, "test_pattern.csv", row.names = FALSE)
+  write.csv(df, here("inputs", "test_pattern.csv"), row.names = FALSE)
   
   Sys.sleep(0.0001)
 }
 
 # New treatment probability by age: 0.5% between ages 55 and 84
 make_treat_prob <- function() {
-  setwd("D:/ndhen/Dropbox/School/RA/2019/Cost-effectiveness model/precise-value/")
   df <- data.frame(ages = seq(18, 100),
                    c = c(rep(0, 37),
                          rep(p_new_rx_current, 30),
@@ -36,12 +33,11 @@ make_treat_prob <- function() {
                          rep(p_new_rx_current, 30),
                          rep(0, 16)))
   
-  write.csv(df, "new_rx_pattern.csv", row.names = FALSE)
+  write.csv(df, here("inputs", "new_rx_pattern.csv"), row.names = FALSE)
 }
 
 # Age distribution
 make_age_pattern <- function() {
-  setwd("D:/ndhen/Dropbox/School/RA/2019/Cost-effectiveness model/precise-value/")
   df <- data.frame(ages = seq(18, 100),
                    p = c(rep(0.01678,2),
                          rep(0.01758,5),
@@ -61,5 +57,5 @@ make_age_pattern <- function() {
                          rep(0.00162,5),
                          rep(0.0005,5),
                          0.000077))
-  write.csv(df, "plan_age_pattern.csv", row.names = FALSE)
+  write.csv(df, here("inputs", "plan_age_pattern.csv"), row.names = FALSE)
 }

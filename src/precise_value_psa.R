@@ -15,8 +15,8 @@ start_age_default <- start_age # age at start of screening
 ### load model 
 ###
 
-source("D:/ndhen/Dropbox/School/RA/2019/Cost-effectiveness model/precise-value/precise_value_r_model.R") 
-source("D:/ndhen/Dropbox/School/RA/2019/Cost-effectiveness model/precise-value/make_inputs.R") 
+source(here("src", "precise_value_r_model.R"))
+source(here("src", "make_inputs.R"))
 
 ###
 ### run psa
