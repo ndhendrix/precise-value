@@ -189,9 +189,9 @@ maint_cost <- maint_cost_default
 ### plot tornado diagram
 ###
 
-library(ggplot2)
-library(tidyverse)
-library(scales)
+# library(ggplot2)
+# library(tidyverse)
+# library(scales)
 
 plot_output <- output %>%
   mutate(distance = (abs(hi_icer - base_icer) + abs(lo_icer - base_icer))/2) %>%
@@ -207,7 +207,7 @@ plot_output <- plot_output %>%
 
 width = 0.95
 
-ggplot() +
+owsa_plot <- ggplot() +
   geom_rect(data = plot_output,
             aes(ymax = ymax,
                 ymin = ymin,
