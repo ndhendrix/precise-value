@@ -9,10 +9,10 @@ precise_value <- function(){
   p_war <- p_war_a*p_a + p_war_b*p_b + p_war_l*p_l + p_war_w*p_w + p_war_o*p_o #population prevalence of warfarin variant
   
   # read input documents
-  setwd("D:/ndhen/Dropbox/School/RA/2019/Cost-effectiveness model/precise-value/")
-  ages <- read.csv("plan_age_pattern.csv")
-  test <- read.csv("test_pattern.csv")
-  drug <- read.csv("new_rx_pattern.csv")
+  #setwd(here())
+  ages <- read.csv(here("inputs", "plan_age_pattern.csv"))
+  test <- read.csv(here("inputs", "test_pattern.csv"))
+  drug <- read.csv(here("inputs", "new_rx_pattern.csv"))
   
   # get population by year
   n_age <- data.frame(ages = ages$ages)

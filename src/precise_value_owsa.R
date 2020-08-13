@@ -12,8 +12,8 @@ start_age_current <- start_age
 ### load model and get base case ICER
 ###
 
-source("D:/ndhen/Dropbox/School/RA/2019/Cost-effectiveness model/precise-value/precise_value_r_model.R") 
-source("D:/ndhen/Dropbox/School/RA/2019/Cost-effectiveness model/precise-value/precise_value_base_values.R") 
+source(here("src", "precise_value_r_model.R")) 
+source(here("src", "precise_value_base_values.R"))
 total <- precise_value()[[2]] 
 
 base_icer <-  round((sum(total$alert_cost) - sum(total$no_alert_cost))/(sum(total$alert_qaly) - sum(total$no_alert_qaly)),2)
@@ -53,7 +53,7 @@ output <- data.frame(parameter = c("Screening duration",
                      hi_icer = rep(0,7))
 
 # source data input functions for creation of data frames for age distribution, testing patterns, and treatment patterns
-source("D:/ndhen/Dropbox/School/RA/2019/Cost-effectiveness model/precise-value/make_inputs.R")
+source(here("src", "make_inputs.R"))
 
 # get screening duration low value
 screen_dur_current <- screen_dur_lo
@@ -189,9 +189,9 @@ maint_cost <- maint_cost_default
 ### plot tornado diagram
 ###
 
-library(ggplot2)
-library(tidyverse)
-library(scales)
+# library(ggplot2)
+# library(tidyverse)
+# library(scales)
 
 plot_output <- output %>%
   mutate(distance = (abs(hi_icer - base_icer) + abs(lo_icer - base_icer))/2) %>%
@@ -207,7 +207,7 @@ plot_output <- plot_output %>%
 
 width = 0.95
 
-ggplot() +
+owsa_plot <- ggplot() +
   geom_rect(data = plot_output,
             aes(ymax = ymax,
                 ymin = ymin,

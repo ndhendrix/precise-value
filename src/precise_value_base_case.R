@@ -1,7 +1,5 @@
-
-setwd("D:/ndhen/Dropbox/School/RA/2019/Cost-effectiveness model/precise-value")
-source("precise_value_base_values.R")
-source("precise_value_r_model.R")
+source(here("src", "precise_value_base_values.R"))
+source(here("src", "precise_value_r_model.R"))
 return_list <- precise_value()
 outcomes <- return_list[[1]]
 total <- return_list[[2]]
