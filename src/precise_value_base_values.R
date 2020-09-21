@@ -4,9 +4,9 @@ n <- 320000  #population size
 # racial demographics from overall US demographics
 p_a <- 0.06 #percentage of population Asian
 p_b <- 0.13 #percentage of population Black
-p_l <- 0.18 #percentage of population Latinx
+#p_l <- 0.18 #percentage of population Latinx
 p_w <- 0.60 #percentage of population White
-p_o <- 0.03 #percentage of population other race
+#p_o <- 0.03 #percentage of population other race
 
 # calculated from race-specific prevalence of CYP2C19 variants
 p_clo_a <- 0.1298 #prevalence of clopidogrel variant (poor metabolizers) among Asian (E. Asian) patients
