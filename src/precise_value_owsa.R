@@ -32,8 +32,8 @@ start_up_lo <- 2000 # start-up costs for alerts
 start_up_hi <- 6000 
 start_age_lo <- 50 # age at start of screening
 start_age_hi <- 60
-p_reg_change_lo <- 0.8 # probability of changing regimen when alerted
-p_reg_change_hi <- 1
+p_reg_change_lo <- 0.1 # probability of changing regimen when alerted
+p_reg_change_hi <- 0.5
 maint_cost_lo <- 50 # annual maintenance cost for alerting program
 maint_cost_hi <- 150
 

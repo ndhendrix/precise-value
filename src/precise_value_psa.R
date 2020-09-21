@@ -30,39 +30,38 @@ output <- data.frame(run = seq(1,n_runs),
 # set default demographic values
 p_a_default <- p_a
 p_b_default <- p_b
-p_l_default <- p_l
+# p_l_default <- p_l
 p_w_default <- p_w
-p_o_default <- p_o
+# p_o_default <- p_o
 
 # run psa
 for(i in 1:n_runs) {
   
   # get plan demographics
-  plan_demographics <- prop.table(table(sample(c("a", "b", "l", "w", "o"),
+  plan_demographics <- prop.table(table(sample(c("a", "b", "w"),
                                                n,
                                                replace = TRUE,
                                                prob = c(p_a_default, 
-                                                        p_b_default, 
-                                                        p_l_default, 
-                                                        p_w_default, 
-                                                        p_o_default))))
+                                                        p_b_default,
+                                                        p_w_default))))
   p_a <- plan_demographics["a"] #percentage of population Asian
   p_b <- plan_demographics["b"] #percentage of population Black
-  p_l <- plan_demographics["l"] #percentage of population Latinx
+  # p_l <- plan_demographics["l"] #percentage of population Latinx
   p_w <- plan_demographics["w"] #percentage of population White
-  p_o <- plan_demographics["o"] #percentage of population other race
+  # p_o <- plan_demographics["o"] #percentage of population other race
   
-  # probability of plan modification based on alert / no alert
-  p_change_alert_default <- runif(1, 0.8, 1) # uniform distribution between 0.8 and 1
-  p_change_no_alert <- runif(1, 0, 0.2) # uniform distribution between 0 and 
+  # probability of plan modification based on alert
+  p_change_alert_default <- runif(1, 0.10, 0.50) # uniform distribution between 0.1 and 0.5
+  # probability of plan modification based on no alert
+  p_change_no_alert <- runif(1, 0, 0.2) # uniform distribution between 0 and 0.2
   
   # qalys and costs of changing pgx
-  qaly_change_clo <- runif(1, 0.02, 0.08)
-  cost_change_clo <- runif(1, 1065, 1465)
-  qaly_change_sim <- 0  # simvastatin no longer included
-  cost_change_sim <- 0  # as of 6/22
-  qaly_change_war <- runif(1, 0.005, 0.015)
-  cost_change_war <- runif(1, -250, 150)
+  qaly_change_clo <- runif(1, 0.04, 0.08)
+  cost_change_clo <- runif(1, 1500, 1900)
+  # qaly_change_sim <- 0  # simvastatin no longer included
+  # cost_change_sim <- 0  # as of 6/22
+  qaly_change_war <- runif(1, 0.005, 0.011)
+  cost_change_war <- runif(1, -350, 50)
   
   # costs associated with alert
   start_up_cost_default <- runif(1, 2000, 6000)
@@ -92,7 +91,7 @@ for(i in 1:n_runs) {
 # library(tidyverse)
 # library(scales)
 
-psa_plot <- ggplot(output, aes(x = qalys, y = costs)) +
+psa_plot<-ggplot(output, aes(x = qalys, y = costs)) +
   geom_point() +
   #stat_ellipse(type = "t", linetype = 2) +
   xlab("Incremental QALYs") + 

@@ -1,47 +1,51 @@
 # Set demographic parameters
-n <- 320000  #population size
+n <- 250000  #population size
 
 # racial demographics from overall US demographics
-p_a <- 0.06 #percentage of population Asian
-p_b <- 0.13 #percentage of population Black
-p_l <- 0.18 #percentage of population Latinx
-p_w <- 0.60 #percentage of population White
-p_o <- 0.03 #percentage of population other race
+p_a <- 0.0603 #percentage of population Asian
+p_b <- 0.1369 #percentage of population Black
+p_w <- 0.8028 #percentage of population White
 
-# calculated from race-specific prevalence of CYP2C19 variants
-p_clo_a <- 0.1298 #prevalence of clopidogrel variant (poor metabolizers) among Asian (E. Asian) patients
-p_clo_b <- 0.0405 #prevalence of clopidogrel variant (poor metabolizers) among Black (African American) patients
-p_clo_l <- 0.0114 #prevalence of clopidogrel variant (poor metabolizers) among Latinx (Latino) patients
-p_clo_w <- 0.2722 #prevalence of clopidogrel variant (poor metabolizers) among White (European) patients
-p_clo_o <- 0.1061 #prevalence of clopidogrel variant (poor metabolizers) among other race (average of all races) patients
+# calculated from race-specific prevalence of CYP2C19 variants: Poor metabolizer and Intermediate metabolizer
+p_clo_a <- 0.5394 
+p_clo_b <- 0.3900
+p_clo_w <- 0.3818 
 
-# calculated from race-specific prevalence of CYP2C9 variants
-p_sim_a <- 0.1575 #prevalence of simvastatin variant (poor or medium metabolizers) among Asian (E. Asian) patients
-p_sim_b <- 0.2413 #prevalence of simvastatin variant (poor or medium metabolizers) among Black (African American) patients
-p_sim_l <- 0.2542 #prevalence of simvastatin variant (poor or medium metabolizers) among Latinx (Latino) patients
-p_sim_w <- 0.3708 #prevalence of simvastatin variant (poor or medium metabolizers) among White (European) patients
-p_sim_o <- 0.2599 #prevalence of simvastatin variant (poor or medium metabolizers) among other (average of all races) race patients
+##CYP2C9 variant: poor metabolizer
+p_2c9_a<-0.0217
+p_2c9_b<-0.0053
+p_2c9_w<-0.0141
 
-# assumes that CYP2C9 and VKORC1 are independent 
-p_war_a <- 0.9006 #prevalence of warfarin variant among Asian (E. Asian) patients
-p_war_b <- 0.3392 #prevalence of warfarin variant among Black (African American) patients
-p_war_l <- 0.6005 #prevalence of warfarin variant among Latinx (Americas) patients
-p_war_w <- 0.6303 #prevalence of warfarin variant among White (Caucasian) patients
-p_war_o <- 0.5743 #prevalence of warfarin variant among other (average of all races) race patients
+##CYP4F2 variant: decreased function
+p_4f2_a<-0.3128
+p_4f2_b<-0.0758
+p_4f2_w<-0.3188
+
+##VKORC1 variant
+p_vko_a<-0.5174
+p_vko_b<-0.1159
+p_vko_w<-0.5329
+
+# CYP2C9, VKORC1, CYP4F2. assumes independence
+p_war_a <- 1-(1-p_2c9_a)*(1-p_4f2_a)*(1-p_vko_a)
+p_war_b <- 1-(1-p_2c9_b)*(1-p_4f2_b)*(1-p_vko_b)
+p_war_w <- 1-(1-p_2c9_w)*(1-p_4f2_w)*(1-p_vko_w)
 
 discount <- 0.03
 
-# probability of plan modification based on alert / no alert
-p_change_alert <- 0.9
+# probability of plan modification based on alert
+p_change_alert <- 0.25
+
+# probability of plan modification based on no alert
 p_change_no_alert <- 0.1
 
 # qalys and costs of changing pgx
 qaly_change_clo <- 0.05
-cost_change_clo <- 1265
-qaly_change_sim <- 0  # simvastatin no longer included
-cost_change_sim <- 0  # as of 6/22
-qaly_change_war <- 0.01
-cost_change_war <- -50
+cost_change_clo <- 1700
+# qaly_change_sim <- 0  # simvastatin no longer included
+# cost_change_sim <- 0  # as of 6/22
+qaly_change_war <- 0.008
+cost_change_war <- -150
 
 # time horizon (years)
 t_horizon <- 20
