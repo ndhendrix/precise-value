@@ -1,12 +1,14 @@
 
 # probability of plan modification based on alert / no alert
 p_change_alert_default <- p_change_alert
+p_change_no_alert_default<-p_change_no_alert
 start_up_cost_default <- start_up_cost
 maint_cost_default <- maint_cost
 screen_dur_current <- screen_dur
 p_new_rx_current <- p_new_rx
 test_rate_current <- test_rate
 start_age_current <- start_age
+p_eligible_default<-p_eligible
 
 ###
 ### load model and get base case ICER
@@ -32,10 +34,14 @@ start_up_lo <- 2000 # start-up costs for alerts
 start_up_hi <- 6000 
 start_age_lo <- 50 # age at start of screening
 start_age_hi <- 60
-p_reg_change_lo <- 0.1 # probability of changing regimen when alerted
-p_reg_change_hi <- 0.5
+p_change_alert_lo <- 0.1 # probability of changing regimen when alerted
+p_change_alert_hi <- 0.5
+p_change_no_alert_lo<-0 # probability of changing regimen when not alerted
+p_change_no_alert_hi<-0.2
 maint_cost_lo <- 50 # annual maintenance cost for alerting program
 maint_cost_hi <- 150
+p_eligible_lo<-0.50 # % of people on warfarin who can benefit from PGx
+p_eligible_hi<-0.75
 
 ###
 ### get values from model for one-ways
@@ -47,13 +53,16 @@ output <- data.frame(parameter = c("Screening duration",
                                    "Testing rate",
                                    "Start-up cost",
                                    "Age at screening start",
-                                   "Probability of regimen change",
-                                   "Maintenance cost"),
-                     lo_icer = rep(0,7),
-                     hi_icer = rep(0,7))
+                                   "Probability of regimen change with an alert",
+                                   "Probability of regimen change without an alert",
+                                   "Maintenance cost",
+                                   "Proportion of people on warfarin benefit from PGx"),
+                     lo_icer = rep(0,9),
+                     hi_icer = rep(0,9))
 
 # source data input functions for creation of data frames for age distribution, testing patterns, and treatment patterns
 source(here("src", "make_inputs.R"))
+
 
 # get screening duration low value
 screen_dur_current <- screen_dur_lo
@@ -153,20 +162,35 @@ make_test_pattern()
 
 
 # get p_change_alert low value
-p_change_alert <- p_reg_change_lo
+p_change_alert <- p_change_alert_lo
 total <- precise_value()[[2]] # run model and take second entry in list of results
-output[output$parameter == "Probability of regimen change", "lo_icer"] <- round((sum(total$alert_cost) - sum(total$no_alert_cost))/
+output[output$parameter == "Probability of regimen change with an alert", "lo_icer"] <- round((sum(total$alert_cost) - sum(total$no_alert_cost))/
                                                                   (sum(total$alert_qaly) - sum(total$no_alert_qaly)),2)
 
 # get p_change_alert high value
-p_change_alert <- p_reg_change_hi
+p_change_alert <- p_change_alert_hi
 total <- precise_value()[[2]] 
-output[output$parameter == "Probability of regimen change", "hi_icer"] <- round((sum(total$alert_cost) - sum(total$no_alert_cost))/
+output[output$parameter == "Probability of regimen change with an alert", "hi_icer"] <- round((sum(total$alert_cost) - sum(total$no_alert_cost))/
                                                                   (sum(total$alert_qaly) - sum(total$no_alert_qaly)),2)
 
 # reset data for base case p_change_alert value
 p_change_alert <- p_change_alert_default
 
+
+# get p_change_no_alert low value
+p_change_no_alert <- p_change_no_alert_lo
+total <- precise_value()[[2]] # run model and take second entry in list of results
+output[output$parameter == "Probability of regimen change without an alert", "lo_icer"] <- round((sum(total$alert_cost) - sum(total$no_alert_cost))/
+                                                                                  (sum(total$alert_qaly) - sum(total$no_alert_qaly)),2)
+
+# get p_change_alert high value
+p_change_no_alert <- p_change_no_alert_hi
+total <- precise_value()[[2]] 
+output[output$parameter == "Probability of regimen change without an alert", "hi_icer"] <- round((sum(total$alert_cost) - sum(total$no_alert_cost))/
+                                                                                  (sum(total$alert_qaly) - sum(total$no_alert_qaly)),2)
+
+# reset data for base case p_change_alert value
+p_change_no_alert <- p_change_no_alert_default
 
 
 # get maint_cost low value
@@ -183,6 +207,24 @@ output[output$parameter == "Maintenance cost", "hi_icer"] <- round((sum(total$al
 
 # reset data for base case maint_cost value
 maint_cost <- maint_cost_default
+
+
+
+# get p_eligible low value
+p_eligible <- p_eligible_lo
+total <- precise_value()[[2]] # run model and take second entry in list of results
+output[output$parameter == "Proportion of people on warfarin benefit from PGx", "lo_icer"] <- round((sum(total$alert_cost) - sum(total$no_alert_cost))/
+                                                                     (sum(total$alert_qaly) - sum(total$no_alert_qaly)),2)
+
+# get p_eligible high value
+p_eligible <- p_eligible_hi
+total <- precise_value()[[2]] 
+output[output$parameter == "Proportion of people on warfarin benefit from PGx", "hi_icer"] <- round((sum(total$alert_cost) - sum(total$no_alert_cost))/
+                                                                     (sum(total$alert_qaly) - sum(total$no_alert_qaly)),2)
+
+# reset data for base case maint_cost value
+p_eligible <- p_eligible_default
+
 
 
 ###

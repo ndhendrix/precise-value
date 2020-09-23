@@ -73,6 +73,9 @@ for(i in 1:n_runs) {
   test_rate_current <- runif(1, 0.075, 0.125) # annual probability of testing for patients in the selected age range
   start_age_current <- round(runif(1, 50, 60),0) # age at start of screening
   
+  # % of people on warfarin who can benefit from PGx
+  p_eligible<-runif(1, 0.40, 1)
+  
   # recreate datasets with test and treat info
   make_test_pattern()
   make_treat_prob()
@@ -91,7 +94,7 @@ for(i in 1:n_runs) {
 # library(tidyverse)
 # library(scales)
 
-psa_plot<-ggplot(output, aes(x = qalys, y = costs)) +
+ggplot(output, aes(x = qalys, y = costs)) +
   geom_point() +
   #stat_ellipse(type = "t", linetype = 2) +
   xlab("Incremental QALYs") + 

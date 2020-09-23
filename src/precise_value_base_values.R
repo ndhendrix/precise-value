@@ -11,25 +11,29 @@ p_clo_a <- 0.5394
 p_clo_b <- 0.3900
 p_clo_w <- 0.3818 
 
-##CYP2C9 variant: poor metabolizer
-p_2c9_a<-0.0217
-p_2c9_b<-0.0053
-p_2c9_w<-0.0141
+# ##CYP2C9 variant: poor metabolizer
+# p_2c9_a<-0.0217
+# p_2c9_b<-0.0053
+# p_2c9_w<-0.0141
+# 
+# ##CYP4F2 variant: decreased function
+# p_4f2_a<-0.3128
+# p_4f2_b<-0.0758
+# p_4f2_w<-0.3188
+# 
+# ##VKORC1 variant
+# p_vko_a<-0.5174
+# p_vko_b<-0.1159
+# p_vko_w<-0.5329
+# 
+# # CYP2C9, VKORC1, CYP4F2. assumes independence
+# p_war_a <- 1-(1-p_2c9_a)*(1-p_4f2_a)*(1-p_vko_a)
+# p_war_b <- 1-(1-p_2c9_b)*(1-p_4f2_b)*(1-p_vko_b)
+# p_war_w <- 1-(1-p_2c9_w)*(1-p_4f2_w)*(1-p_vko_w)
 
-##CYP4F2 variant: decreased function
-p_4f2_a<-0.3128
-p_4f2_b<-0.0758
-p_4f2_w<-0.3188
-
-##VKORC1 variant
-p_vko_a<-0.5174
-p_vko_b<-0.1159
-p_vko_w<-0.5329
-
-# CYP2C9, VKORC1, CYP4F2. assumes independence
-p_war_a <- 1-(1-p_2c9_a)*(1-p_4f2_a)*(1-p_vko_a)
-p_war_b <- 1-(1-p_2c9_b)*(1-p_4f2_b)*(1-p_vko_b)
-p_war_w <- 1-(1-p_2c9_w)*(1-p_4f2_w)*(1-p_vko_w)
+# % of people on warfarin will be eligible to benefit from PGx. 
+p_war <- 1 #09/22: we don't model warfarin variant anymore. 
+p_eligible<-0.67 
 
 discount <- 0.03
 
