@@ -256,7 +256,7 @@ owsa_plot <- ggplot() +
                 xmin = as.numeric(parameter) - width / 2,
                 xmax = as.numeric(parameter) + width / 2,
                 fill = type)) +
-  theme_bw(base_size = 18) +
+  theme_bw(base_size = 12) +
   theme(axis.title.y = element_blank(),
         legend.position = "bottom",
         legend.title = element_blank()) +
