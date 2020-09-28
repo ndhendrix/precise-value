@@ -107,7 +107,7 @@ for(i in 1:n_runs) {
 # library(tidyverse)
 # library(scales)
 
-ggplot(output, aes(x = qalys, y = costs)) +
+psa_plot <- ggplot(output, aes(x = qalys, y = costs)) +
   geom_point() +
   #stat_ellipse(type = "t", linetype = 2) +
   xlab("Incremental QALYs") + 
