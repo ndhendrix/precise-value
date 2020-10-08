@@ -4,6 +4,7 @@ output:
   flexdashboard::flex_dashboard:
     orientation: columns
     vertical_layout: fill
+runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
@@ -22,7 +23,15 @@ outcomes <- return_list[[1]]
 total <- return_list[[2]]
 ```
 
-Column {data-width=350}
+Inputs {.sidebar data-width=250}
+-----------------------------------------------------------------------
+
+```{r}
+numericInput(inputId = "pop_size", label = "Population size:",
+            value = 250000)
+```
+
+Column {data-width=150}
 -----------------------------------------------------------------------
 
 ### Input Parameters
@@ -30,7 +39,7 @@ Column {data-width=350}
 ```{r}
 # Placeholder to display input parameters
 # Set demographic parameters
-n <- 320000  #population size
+#n <- 320000  #population size
 
 # racial demographics from overall US demographics
 p_a <- 0.06 #percentage of population Asian
@@ -106,7 +115,7 @@ cat(paste0("ICER = ", round((sum(total$alert_cost) - sum(total$no_alert_cost))/(
                                                       sum(total$no_alert_cost))/sum(total$alert_n),2)))
 ```
 
-Column {data-width=650}
+Column {data-width=600}
 -----------------------------------------------------------------------
 
 ### PSA

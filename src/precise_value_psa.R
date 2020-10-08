@@ -39,7 +39,7 @@ for(i in 1:n_runs) {
   
   # get plan demographics
   plan_demographics <- prop.table(table(sample(c("a", "b", "w"),
-                                               n,
+                                               pop_size,
                                                replace = TRUE,
                                                prob = c(p_a_default, 
                                                         p_b_default,
