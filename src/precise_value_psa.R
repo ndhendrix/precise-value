@@ -1,7 +1,7 @@
 ###
 ### Set base case parameters
 ###
-
+psa <- function(pop_size){
 # set number of runs for psa
 n_runs <- 100
 
@@ -128,3 +128,6 @@ start_age_current <- start_age_default
 # recreate datasets with test and treat info
 make_test_pattern()
 make_treat_prob()
+
+return(psa_plot)
+}

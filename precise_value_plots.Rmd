@@ -18,6 +18,7 @@ library(plotly)
 ```{r}
 source(here("src", "precise_value_base_values.R")) # initialize values
 source(here("src", "precise_value_r_model.R")) # build model
+source(here("src", "precise_value_psa.R")) # holds function for PSA
 return_list <- precise_value()
 outcomes <- return_list[[1]]
 total <- return_list[[2]]
@@ -121,8 +122,11 @@ Column {data-width=600}
 ### PSA
 
 ```{r}
-source(here("src", "precise_value_psa.R"))
-ggplotly(psa_plot)
+#source(here("src", "precise_value_psa.R"))
+renderPlotly({
+  psa(pop_size)
+})
+#ggplotly(psa_plot)
 ```
 
 ### OWSA
