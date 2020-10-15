@@ -30,12 +30,24 @@ Inputs {.sidebar data-width=250}
 ```{r}
 numericInput(inputId = "pop_size", label = "Population size:",
             value = 250000)
+numericInput(inputId = "p_w", label = "Percentage White:",
+            value = 60)
+numericInput(inputId = "p_l", label = "Percentage Latinx:",
+            value = 18)
+numericInput(inputId = "p_b", label = "Percentage Black:",
+            value = 13)
+numericInput(inputId = "p_l", label = "Percentage Asian:",
+            value = 6)
+numericInput(inputId = "p_o", label = "Percentage Other:",
+            value = 3)
+sliderInput(inputId = "t_horizon", label = "Time Horizon:",
+            min = 5, max = 85, value = 20, step = 1)
+sliderInput(inputId = "startup_cost", label = "Startup Cost:",
+            min = 100, max = 20000, value = 4000, step = 100)
+sliderInput(inputId = "maint_cost", label = "Maintenance Cost:",
+            min = 0, max = 50, value = 20, step = 5)
 ```
 
-Column {data-width=150}
------------------------------------------------------------------------
-
-### Input Parameters
 
 ```{r}
 # Placeholder to display input parameters
@@ -75,25 +87,25 @@ test_rate <- 0.1 # annual probability of testing for patients in the selected ag
 start_age <- 55 # age at start of screening
 ```
 
-Population Size: `r n`
+Column {data-width=750}
+-----------------------------------------------------------------------
 
-**Demographics Percentages**
+### PSA
 
-White: `r 100*p_w`%
+```{r}
+#source(here("src", "precise_value_psa.R"))
+renderPlotly({
+  psa(input$pop_size)
+})
+#ggplotly(psa_plot)
+```
 
-Latinx: `r 100*p_l`%
+### OWSA
 
-Black: `r 100*p_b`%
-
-Asian: `r 100*p_a`%
-
-Other: `r 100*p_o`%
-
-Time Horizon: `r t_horizon` years
-
-Startup cost: `r start_up_cost`
-
-Maintenance cost: `r maint_cost`
+```{r}
+source(here("src", "precise_value_owsa.R"))
+ggplotly(owsa_plot)
+```
 
 ### Summary
 
@@ -115,24 +127,3 @@ cat(paste0("ICER = ", round((sum(total$alert_cost) - sum(total$no_alert_cost))/(
            "\nreg change cost per alert = ", round((sum(total$alert_cost) - sum(outcomes$alert_cost) - 
                                                       sum(total$no_alert_cost))/sum(total$alert_n),2)))
 ```
-
-Column {data-width=600}
------------------------------------------------------------------------
-
-### PSA
-
-```{r}
-#source(here("src", "precise_value_psa.R"))
-renderPlotly({
-  psa(pop_size)
-})
-#ggplotly(psa_plot)
-```
-
-### OWSA
-
-```{r}
-source(here("src", "precise_value_owsa.R"))
-ggplotly(owsa_plot)
-```
-
