@@ -1,9 +1,9 @@
 # Testing pattern on initial base case: 10% each year while age 55-59
 make_test_pattern <- function() {
   df <- data.frame(ages = seq(18, 100),
-                   y1 = c(rep(0, start_age_current - 18),
-                          rep(test_rate_current, screen_dur_current),
-                          rep(0, 101 - (start_age_current + screen_dur_current))))
+                   y1 = c(rep(0, start_age - 18),
+                          rep(test_rate, screen_dur),
+                          rep(0, 101 - (start_age + screen_dur))))
   
   for(i in 2:t_horizon) {
     temp_col <- c(0,df[1:82,ncol(df)]) + df$y1
@@ -11,7 +11,7 @@ make_test_pattern <- function() {
     names(df)[ncol(df)] <- paste0("y", i)
   }
   
-  df <- apply(df,
+  df[,2:21] <- apply(df[,2:21],
               c(1,2),
               function(x) min(x, 1))
   
@@ -20,18 +20,36 @@ make_test_pattern <- function() {
   Sys.sleep(0.0001)
 }
 
-# New treatment probability by age: 0.5% between ages 55 and 84
+# New treatment probability by age: updated on 12/30 MS results
 make_treat_prob <- function() {
   df <- data.frame(ages = seq(18, 100),
-                   c = c(rep(0, 37),
-                         rep(p_new_rx_current, 30),
-                         rep(0, 16)),
+                   c = c(rep(p_new_rx_clo_18_24, 7),
+                         rep(p_new_rx_clo_25_34,10),
+                         rep(p_new_rx_clo_35_44,10),
+                         rep(p_new_rx_clo_45_49,5),
+                         rep(p_new_rx_clo_50_54,5),
+                         rep(p_new_rx_clo_55_59,5),
+                         rep(p_new_rx_clo_60_64,5),
+                         rep(p_new_rx_clo_65_69,5),
+                         rep(p_new_rx_clo_70_74,5),
+                         rep(p_new_rx_clo_75_79,5),
+                         rep(p_new_rx_clo_80_84,5),
+                         rep(p_new_rx_clo_85_100,16)),
                    s = c(rep(0, 37),
-                         rep(p_new_rx_current, 30),
+                         rep(0, 30),
                          rep(0, 16)),
-                   w = c(rep(0, 37),
-                         rep(p_new_rx_current, 30),
-                         rep(0, 16)))
+                   w = c(rep(p_new_rx_war_18_24, 7),
+                         rep(p_new_rx_war_25_34,10),
+                         rep(p_new_rx_war_35_44,10),
+                         rep(p_new_rx_war_45_49,5),
+                         rep(p_new_rx_war_50_54,5),
+                         rep(p_new_rx_war_55_59,5),
+                         rep(p_new_rx_war_60_64,5),
+                         rep(p_new_rx_war_65_69,5),
+                         rep(p_new_rx_war_70_74,5),
+                         rep(p_new_rx_war_75_79,5),
+                         rep(p_new_rx_war_80_84,5),
+                         rep(p_new_rx_war_85_100,16)))
   
   write.csv(df, here("inputs", "new_rx_pattern.csv"), row.names = FALSE)
 }
