@@ -3,15 +3,19 @@
 # The three target drugs tested are clopidogrel, simvastatin, and warfarin.
 
 # Model programmed by Nathaniel Hendrix (nhendrix@uw.edu)
-precise_value <- function(){
+precise_value <- function(start_age, test_rate, screen_dur, t_horizon, p_new_rx){
   p_clo <- p_clo_a*p_a + p_clo_b*p_b + p_clo_w*p_w  #population prevalence of clopidogrel variant
   p_war <- 1                                        #population prevalence of warfarin variant. 09/22: we dont need variant prevalence. 
   
   # read input documents
   #setwd(here())
-  ages <- read.csv(here("inputs", "plan_age_pattern.csv"))
-  test <- read.csv(here("inputs", "test_pattern.csv"))
-  drug <- read.csv(here("inputs", "new_rx_pattern.csv"))
+  ages <- make_age_pattern()
+    #read.csv(here("inputs", "plan_age_pattern.csv"))
+  test <- make_test_pattern(start_age, test_rate, screen_dur, t_horizon)
+    #read.csv(here("inputs", "test_pattern.csv"))
+  drug <- make_treat_prob(p_new_rx)
+    #read.csv(here("inputs", "new_rx_pattern.csv"))
+  
   
   # get population by year
   n_age <- data.frame(ages = ages$ages)
@@ -20,6 +24,8 @@ precise_value <- function(){
     n_age$temp_col <- temp_col
     names(n_age)[ncol(n_age)] <- paste0("y", i)
   }
+  # result is a matrix with ages as first col and each year in t_horizon as a separate column
+  # represents population at a given age for each year of program
   
   # get probability of new clopidogrel rx by year
   p_new_clo <- data.frame(ages = drug$ages)
@@ -28,6 +34,8 @@ precise_value <- function(){
     p_new_clo$temp_col <- temp_col
     names(p_new_clo)[ncol(p_new_clo)] <- paste0("y", i)
   }
+  # result is a matrix with ages as first col and prob of getting clop for each age 
+  # across all years of program
   
   # get probability of new simvastatin rx by year
   # p_new_sim <- data.frame(ages = drug$ages)
@@ -47,8 +55,8 @@ precise_value <- function(){
   
   # calculate benefit of clopidogrel alert
   n_test <- n_age * test #number tested by age / year
-  n_var <- n_test * p_clo #number tested positive for variant
-  n_rx <- n_var * p_new_clo
+  n_var <- n_test * p_clo #number tested positive for variant - ages multiplied by prob, ?correct
+  n_rx <- n_var * p_new_clo # ages inaccurate
   clo_outcomes <- data.frame(year = seq(1, t_horizon),
                              clo_n_alert = apply(n_rx[,2:ncol(n_rx)],
                                                  2,
@@ -104,6 +112,6 @@ precise_value <- function(){
                       alert_cost = rowSums(outcomes[,c(4,9,12)]),
                       no_alert_qaly = rowSums(outcomes[,c(5,10)]),
                       no_alert_cost = rowSums(outcomes[,c(6,11)]))
-  
+  #return_list <- list(outcomes, total)
   return(list(outcomes,total))
 }

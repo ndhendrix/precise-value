@@ -16,10 +16,14 @@ library(plotly)
 ```
 
 ```{r}
+source(here("src", "make_inputs.R")) # functions to generate starting data frames
 source(here("src", "precise_value_base_values.R")) # initialize values
 source(here("src", "precise_value_r_model.R")) # build model
 source(here("src", "precise_value_psa.R")) # holds function for PSA
-return_list <- precise_value()
+source(here("R", "precisevalue.R"))
+return_list <- precise_value(start_age = 55, test_rate = 0.1,
+                             screen_dur = 5, t_horizon = 20,
+                             p_new_rx = 0.005)
 outcomes <- return_list[[1]]
 total <- return_list[[2]]
 ```
@@ -28,24 +32,7 @@ Inputs {.sidebar data-width=250}
 -----------------------------------------------------------------------
 
 ```{r}
-numericInput(inputId = "pop_size", label = "Population size:",
-            value = 250000)
-numericInput(inputId = "p_w", label = "Percentage White:",
-            value = 60)
-numericInput(inputId = "p_l", label = "Percentage Latinx:",
-            value = 18)
-numericInput(inputId = "p_b", label = "Percentage Black:",
-            value = 13)
-numericInput(inputId = "p_l", label = "Percentage Asian:",
-            value = 6)
-numericInput(inputId = "p_o", label = "Percentage Other:",
-            value = 3)
-sliderInput(inputId = "t_horizon", label = "Time Horizon:",
-            min = 5, max = 85, value = 20, step = 1)
-sliderInput(inputId = "startup_cost", label = "Startup Cost:",
-            min = 100, max = 20000, value = 4000, step = 100)
-sliderInput(inputId = "maint_cost", label = "Maintenance Cost:",
-            min = 0, max = 50, value = 20, step = 5)
+precisevalueUI("input_parameters")
 ```
 
 
@@ -74,40 +61,27 @@ qaly_change_war <- 0.01
 cost_change_war <- -50
 
 # time horizon (years)
-t_horizon <- 20
+# t_horizon <- 20
 
 # costs associated with alert
-start_up_cost <- 4000
-maint_cost <- 100
+# start_up_cost <- 4000
+# maint_cost <- 100
 
 # testing and medication use patterns
-screen_dur <- 5 # years of screening
-p_new_rx <- 0.005 # annual probability of a new rx for one of the included drugs
-test_rate <- 0.1 # annual probability of testing for patients in the selected age range
-start_age <- 55 # age at start of screening
+# screen_dur <- 5 # years of screening
+# p_new_rx <- 0.005 # annual probability of a new rx for one of the included drugs
+# test_rate <- 0.1 # annual probability of testing for patients in the selected age range
+# start_age <- 55 # age at start of screening
 ```
 
 Column {data-width=750}
 -----------------------------------------------------------------------
 
-### PSA
-
-```{r}
-#source(here("src", "precise_value_psa.R"))
-renderPlotly({
-  psa(input$pop_size)
-})
-#ggplotly(psa_plot)
-```
-
-### OWSA
-
-```{r}
-source(here("src", "precise_value_owsa.R"))
-ggplotly(owsa_plot)
-```
-
 ### Summary
+
+```{r}
+renderText(paste0("ICER = ", round((sum(total$alert_cost) - sum(total$no_alert_cost))/(sum(total$alert_qaly) - sum(total$no_alert_qaly)),2)))
+```
 
 ICER = `r round((sum(total$alert_cost) - sum(total$no_alert_cost))/(sum(total$alert_qaly) - sum(total$no_alert_qaly)),2)`
 
@@ -126,4 +100,21 @@ cat(paste0("ICER = ", round((sum(total$alert_cost) - sum(total$no_alert_cost))/(
            "\nadmin cost per alert = ", round(sum(outcomes$alert_cost)/sum(total$alert_n),2),
            "\nreg change cost per alert = ", round((sum(total$alert_cost) - sum(outcomes$alert_cost) - 
                                                       sum(total$no_alert_cost))/sum(total$alert_n),2)))
+```
+
+### PSA
+
+```{r}
+#source(here("src", "precise_value_psa.R"))
+renderPlotly({
+  psa(input$pop_size)
+})
+#ggplotly(psa_plot)
+```
+
+### OWSA
+
+```{r}
+source(here("src", "precise_value_owsa.R"))
+ggplotly(owsa_plot)
 ```
