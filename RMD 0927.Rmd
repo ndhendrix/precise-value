@@ -1,0 +1,117 @@
+title: "PRECISE Value Plots"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(here)
+library(tidyverse)
+library(scales)
+library(plotly)
+```
+
+```{r}
+source(here("src", "precise_value_base_values.R")) # initialize values
+source(here("src", "precise_value_r_model.R")) # build model
+return_list <- precise_value()
+outcomes <- return_list[[1]]
+total <- return_list[[2]]
+```
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Input Parameters
+
+```{r}
+# Placeholder to display input parameters
+# Set demographic parameters
+n <- 320000  #population size
+# racial demographics from overall US demographics
+p_a <- 0.06 #percentage of population Asian
+p_b <- 0.13 #percentage of population Black
+p_l <- 0.18 #percentage of population Latinx
+p_w <- 0.60 #percentage of population White
+p_o <- 0.03 #percentage of population other race
+# probability of plan modification based on alert / no alert
+p_change_alert <- 0.9
+p_change_no_alert <- 0.1
+# qalys and costs of changing pgx
+qaly_change_clo <- 0.05
+cost_change_clo <- 1265
+qaly_change_sim <- 0  # simvastatin no longer included
+cost_change_sim <- 0  # as of 6/22
+qaly_change_war <- 0.01
+cost_change_war <- -50
+# time horizon (years)
+t_horizon <- 20
+# costs associated with alert
+start_up_cost <- 4000
+maint_cost <- 100
+# testing and medication use patterns
+screen_dur <- 5 # years of screening
+p_new_rx <- 0.005 # annual probability of a new rx for one of the included drugs
+test_rate <- 0.1 # annual probability of testing for patients in the selected age range
+start_age <- 55 # age at start of screening
+```
+
+Population Size: `r n`
+
+**Demographics Percentages**
+
+White: `r 100*p_w`%
+
+Latinx: `r 100*p_l`%
+
+Black: `r 100*p_b`%
+
+Asian: `r 100*p_a`%
+
+Other: `r 100*p_o`%
+
+Time Horizon: `r t_horizon` years
+
+Startup cost: `r start_up_cost`
+
+Maintenance cost: `r maint_cost`
+
+### Summary
+
+ICER = `r round((sum(total$alert_cost) - sum(total$no_alert_cost))/(sum(total$alert_qaly) - sum(total$no_alert_qaly)),2)`
+
+Cost per alert = `r round((sum(total$alert_cost) - sum(total$no_alert_cost))/sum(total$alert_n),2)`
+
+N alert = `r sum(total$alert_n)`
+
+Admin cost per alert = `r round(sum(outcomes$alert_cost)/sum(total$alert_n),2)`
+
+Change cost per alert = `r round((sum(total$alert_cost) - sum(outcomes$alert_cost) - sum(total$no_alert_cost))/sum(total$alert_n),2)`
+
+```{r, include = FALSE}
+cat(paste0("ICER = ", round((sum(total$alert_cost) - sum(total$no_alert_cost))/(sum(total$alert_qaly) - sum(total$no_alert_qaly)),2),
+           "\nCost per alert = ", round((sum(total$alert_cost) - sum(total$no_alert_cost))/sum(total$alert_n),2),
+           "\nn alert = ",sum(total$alert_n),
+           "\nadmin cost per alert = ", round(sum(outcomes$alert_cost)/sum(total$alert_n),2),
+           "\nreg change cost per alert = ", round((sum(total$alert_cost) - sum(outcomes$alert_cost) - 
+                                                      sum(total$no_alert_cost))/sum(total$alert_n),2)))
+```
+
+Column {data-width=650}
+-----------------------------------------------------------------------
+
+### PSA
+
+```{r}
+source(here("src", "precise_value_psa.R"))
+ggplotly(psa_plot)
+```
+
+### OWSA
+
+```{r}
+source(here("src", "precise_value_owsa.R"))
+ggplotly(owsa_plot)
+```

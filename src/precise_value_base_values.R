@@ -1,5 +1,5 @@
 # Set demographic parameters
-n <- 500000  #population size. Updated: 500,000, Date: 01/07/2021
+n <- 5000000  #population size. Updated: 500,000, Date: 01/07/2021
 
 # racial demographics from overall US demographics
 p_a <- 0.0603 #percentage of population Asian
