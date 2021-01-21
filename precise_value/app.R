@@ -101,7 +101,7 @@ precisevalueServer <- function(id) {
             p_new_rx_clo_75_79 <- 0.004334
             p_new_rx_clo_80_84 <- 0.004971
             p_new_rx_clo_85_100<- 0.004706
-            rr_new_rx_clo<-1
+            rr_new_rx_clo <- 1
             
             ##Risk of getting warfarin for AF. Joyce updated on 01/12/2021
             p_new_rx_war_18_24 <- 0.000005
@@ -115,8 +115,8 @@ precisevalueServer <- function(id) {
             p_new_rx_war_70_74 <- 0.002170
             p_new_rx_war_75_79 <- 0.003191
             p_new_rx_war_80_84 <- 0.004050
-            p_new_rx_war_85_100<- 0.003816
-            rr_new_rx_war<-1
+            p_new_rx_war_85_100 <- 0.003816
+            rr_new_rx_war <- 1
             
             
             # The user's data, parsed into a data frame. Joyce updated on 01/12/2021
@@ -131,15 +131,15 @@ precisevalueServer <- function(id) {
                 
                 # get population by year. Joyce updated on 01/12/2021
                 n_age <- data.frame(ages = ages$ages)
-                for(i in 1:t_horizon){
-                    temp_col <- n * ages$p
+                for(i in 1:input$t_horizon){
+                    temp_col <- input$pop_size * ages$p
                     n_age$temp_col <- temp_col
                     names(n_age)[ncol(n_age)] <- paste0("y", i)
                 }
                 
                 # get probability of new clopidogrel rx by year. Joyce updated on 01/12/2021
                 p_new_clo <- data.frame(ages = drug$ages)
-                for(i in 1:t_horizon){
+                for(i in 1:input$t_horizon){
                     temp_col <- drug$c * rr_new_rx_clo
                     p_new_clo$temp_col <- temp_col
                     names(p_new_clo)[ncol(p_new_clo)] <- paste0("y", i)
@@ -147,18 +147,18 @@ precisevalueServer <- function(id) {
                 
                 # get probability of new warfarin rx by year.Joyce updated on 01/12/2021
                 p_new_war <- data.frame(ages = drug$ages)
-                for(i in 1:t_horizon){
+                for(i in 1:input$t_horizon){
                     temp_col <- drug$w * rr_new_rx_war
                     p_new_war$temp_col <- temp_col
                     names(p_new_war)[ncol(p_new_war)] <- paste0("y", i)
                 }
                 
                 # calculate benefit of clopidogrel alert. Joyce updated on 01/12/2021
-                n_test <-n_age[,-1] * test[,-1] #number tested 
+                n_test <- n_age[,-1] * test[,-1] #number tested 
                 n_var <- n_test * p_clo #number tested positive 
                 n_rx <- n_var * p_new_clo[,-1] #number get clopidogrel
                 
-                clo_outcomes <- data.frame(year = seq(1, t_horizon),
+                clo_outcomes <- data.frame(year = seq(1, input$t_horizon),
                                            clo_n_alert = apply(n_rx, 
                                                                2,                   #operate on columns
                                                                function(x) sum(x))) #calculate the total. 
@@ -207,7 +207,7 @@ precisevalueServer <- function(id) {
                 n_rx <- n_var * p_new_war[,-1]
                 
                 
-                war_outcomes <- data.frame(year = seq(1, t_horizon),
+                war_outcomes <- data.frame(year = seq(1, input$t_horizon),
                                            war_n_alert = apply(n_rx,
                                                                2,
                                                                function(x) sum(x)))
@@ -229,8 +229,8 @@ precisevalueServer <- function(id) {
                 outcomes <- merge(clo_outcomes, war_outcomes, by = "year")
                 
                 # add start-up and maintenance costs of alert program. Joyce updated on 01/12/2021
-                outcomes$admin_alert_cost <- start_up_cost
-                outcomes$admin_alert_cost[2:nrow(outcomes)] <- maint_cost
+                outcomes$admin_alert_cost <- input$startup_cost
+                outcomes$admin_alert_cost[2:nrow(outcomes)] <- input$startup_cost * (input$maint_cost/100)
                 
                 # Discounting for costs and QALYs only, not ADEs. Joyce updated on 01/12/2021
                 # The number of alerts: 2 for clopidogrel, 27 for warfarin. 
@@ -309,7 +309,7 @@ precisevalueServer <- function(id) {
                                    ADE_results_clo,
                                    ADE_results_war)
                 names(results_list)<-c("All","CEA_results_discounted","CEA_results_undiscounted","ADE_results_clo","ADE_results_war")
-                return(results_list)
+                return(results_list$All)
             })
             
             # Return the reactive that yields the data frame
