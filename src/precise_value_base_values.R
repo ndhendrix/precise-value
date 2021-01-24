@@ -1,15 +1,20 @@
 # Set demographic parameters
-n <- 5000000  #population size. Updated: 500,000, Date: 01/07/2021
+n <- 500000  #population size. Updated: 500,000, Date: 01/07/2021
 
 # racial demographics from overall US demographics
 p_a <- 0.0603 #percentage of population Asian
 p_b <- 0.1369 #percentage of population Black
 p_w <- 0.8028 #percentage of population White
 
-# calculated from race-specific prevalence of CYP2C19 variants: Poor metabolizer and Intermediate metabolizer
-p_clo_a <- 0.5394 
-p_clo_b <- 0.3900
-p_clo_w <- 0.3818 
+# Variant prevalence of CYP2C19 variants: Poor metabolizer and Intermediate metabolizer. Confirmed: 01/23/2021. 
+p_clo_a <- 0.5394
+p_clo_b <- 0.3840
+p_clo_w <- 0.3818
+
+# # Variant prevalence ratio of CYP2C19 variants: White as reference. 01/23/2021
+# rr_clo_aw<-p_clo_a/p_clo_w
+# rr_clo_bw<-p_clo_b/p_clo_w
+# rr_clo_ww<-p_clo_w/p_clo_w
 
 # ##CYP2C9 variant: poor metabolizer
 # p_2c9_a<-0.0217
@@ -44,24 +49,24 @@ p_change_alert <- 0.25
 p_change_no_alert <- 0.1
 
 # qalys and costs of pgx-cds
-qaly_change_clo <- 0.05
-cost_change_clo <- 1700
+qaly_change_clo <- 0.05/0.28 #Updated on 01/23/2021: account for variant prevalence for White. 
+cost_change_clo <- 1972/0.28 #Updated on 01/23/2021: account for variant prevalence for White, adjust inflation by CPI. 
 # qaly_change_sim <- 0  # simvastatin no longer included
 # cost_change_sim <- 0  # as of 6/22
 qaly_change_war <- 0.008
-cost_change_war <- -150
+cost_change_war <- -165 #Updated on 01/23/2021: adjust inflation by CPI
 
-# ADE of PGx-CDS for clopidogrel (updated: 11/21/2020)
-NonFatalMI_change_clo<--0.002 #PGx: risk reduction
-StentThrombosis_change_clo<--0.0011 #PGx: risk reduction
-NonFatalIntracranial_change_clo<-0.000005 #PGx: risk increase
-NonFatalExtracranial_change_clo<-0.0008 #PGx: risk increase
-CABGBleeding_change_clo<-0.000025 #PGx: risk increase
-MinorBleeding_change_clo<-0.00023  #PGx: risk increase
-CABGRevascularization_change_clo<--0.00015#PGx: risk reduction
-PCIRevascularization_change_clo<--0.0016 #PGx: risk reduction
-CVDeath_change_clo<--0.0016 #PGx: risk reduction
-NONCVDeath_change_clo<--0.00013 #PGx: risk reduction
+# ADE of PGx-CDS for clopidogrel (updated: 11/21/2020). #Updated on 01/23/2021. (1) not adjust 1-year risk, (2) account for variant prevalence in White.
+NonFatalMI_change_clo<--0.008/0.28 #PGx: risk reduction
+StentThrombosis_change_clo<--0.0042/0.28 #PGx: risk reduction
+NonFatalIntracranial_change_clo<-0.0002/0.28 #PGx: risk increase
+NonFatalExtracranial_change_clo<-0.00032/0.28 #PGx: risk increase
+CABGBleeding_change_clo<-0.0001/0.28 #PGx: risk increase
+MinorBleeding_change_clo<-0.0011/0.28  #PGx: risk increase
+CABGRevascularization_change_clo<--0.0006/0.28#PGx: risk reduction
+PCIRevascularization_change_clo<--0.0049/0.28 #PGx: risk reduction
+CVDeath_change_clo<--0.0065/0.28 #PGx: risk reduction
+NONCVDeath_change_clo<--0.0008/0.28 #PGx: risk reduction
 
 # ADE of PGx-CDS for warfarin (updated: 11/21/2020)
 Bleeding_change_war<--0.007 #PGx: risk reduction

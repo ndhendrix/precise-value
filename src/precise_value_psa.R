@@ -92,20 +92,20 @@ for(i in 1:n_runs) {
   p_change_no_alert <- rbeta(1,3.36,30.22)
   PSA_output[i,6]<-p_change_no_alert
   
-  #6. QALYs of PGx-clopidogrel: beta distribution. Mean=0.05, CI: 0.04-0.08
-  qaly_change_clo <- rbeta(1,22.76, 432.43)
+  #6. QALYs of PGx-clopidogrel: beta distribution. Mean=0.179, CI: 0.10-0.25. #Updated: 01/23/2021. 
+  qaly_change_clo <- rbeta(1,17.79, 81.58)
   PSA_output[i,7]<-qaly_change_clo
   
   #7. QALYs of PGx-warfarin: beta distribution. Mean=0.008, CI: 0.005-0.011
   qaly_change_war <- rbeta(1,27.09,3359.35)
   PSA_output[i,8]<-qaly_change_war
   
-  #8. Cost of PGx-clopidogrel: normal distribution. Mean=1700, CI: 1500-1900
-  cost_change_clo <- rnorm(1,1500,102.04)
+  #8. Cost of PGx-clopidogrel: normal distribution. Mean=1972, CI: 1500-2500. #Updated: 01/23/2021. 
+  cost_change_clo <- rnorm(1,1972,269.39)
   PSA_output[i,9]<-cost_change_clo
   
-  #9. Cost of PGx-warfarin: normal distribution. Mean=-150, CI: -350-50
-  cost_change_war <- rnorm(1, -150, 102.04)
+  #9. Cost of PGx-warfarin: normal distribution. Mean=-165, CI: -365, 35. #Updated: 01/23/2021. 
+  cost_change_war <- rnorm(1, -165, 102.04)
   PSA_output[i,10]<-cost_change_war
   
   #10. Start-up cost: normal distribution. Mean=4000, CI: 2000-6000

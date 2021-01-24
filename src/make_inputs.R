@@ -1,27 +1,33 @@
 # Testing pattern on initial base case: 10% each year while age 55-59
 make_test_pattern <- function() {
+  
+  #DATA 1: TESTING PATTERN. Notes added on: 01/23/2021
+  #(1) Using start_age, screen_dur, and test_rate. 
   df <- data.frame(ages = seq(18, 100),
                    y1 = c(rep(0, start_age - 18),
                           rep(test_rate, screen_dur),
                           rep(0, 101 - (start_age + screen_dur))))
-  
+  #(2) Expanding to 20 years (t_horizon)
   for(i in 2:t_horizon) {
     temp_col <- c(0,df[1:82,ncol(df)]) + df$y1
     df$temp_col <- temp_col
     names(df)[ncol(df)] <- paste0("y", i)
   }
   
+  #(3) Cap the testing prob <=100%. 
   df[,2:21] <- apply(df[,2:21],
               c(1,2),
               function(x) min(x, 1))
   
+  #(4) Save the file. 
   write.csv(df, here("inputs", "test_pattern.csv"), row.names = FALSE)
-  
   Sys.sleep(0.0001)
 }
 
 # New treatment probability by age: updated on 12/30 MS results
 make_treat_prob <- function() {
+  
+  #DATA 2: Risk of getting a new drug by age. Inputs are based on MarketScan. Notes added on: 01/23/2021
   df <- data.frame(ages = seq(18, 100),
                    c = c(rep(p_new_rx_clo_18_24, 7),
                          rep(p_new_rx_clo_25_34,10),
@@ -56,6 +62,8 @@ make_treat_prob <- function() {
 
 # Age distribution
 make_age_pattern <- function() {
+
+  #DATA 3: Population age distribution. Inputs are based on US Census data. Notes added on: 01/23/2021
   df <- data.frame(ages = seq(18, 100),
                    p = c(rep(0.01608,2), #18-19
                          rep(0.01693,5), #20-24
