@@ -32,9 +32,9 @@ precisevalueUI <- function(id, label = "model inputs") {
                     min = 1, max = 50, value = 10, step = 1), ##Joyce updated on 01/12/2021
         sliderInput(ns("t_horizon"), label = "Time Horizon:",
                     min = 5, max = 85, value = 20, step = 1),
-        sliderInput(ns("startup_cost"), label = "Startup Cost:",
-                    min = 100, max = 20000, value = 4000, step = 100),
-        sliderInput(ns("maint_cost"), label = "Maintenance Cost:",
+        sliderInput(ns("startup_cost"), label = "Startup Effort (Hours of IT Build Effort):",
+                    min = 5, max = 1000, value = 200, step = 5),
+        sliderInput(ns("maint_cost"), label = "Maintenance Cost (Annual % of Startup Effort):",
                     min = 0, max = 50, value = 20, step = 5)
     )
 }
@@ -69,24 +69,27 @@ precisevalueServer <- function(id) {
             
             ##Payoffs. Joyce updated on 01/12/2021
             # payoffs: qalys and costs of PGx. Identified from literature review. 
-            qaly_change_clo <- 0.05
-            cost_change_clo <- 1700
+            qaly_change_clo <- 0.05/0.28 #Updated on 01/23/2021: account for variant prevalence for White. 
+            cost_change_clo <- 1972/0.28 #Updated on 01/23/2021: account for variant prevalence for White, adjust inflation by CPI. 
             qaly_change_war <- 0.008
-            cost_change_war <- -150
-            # payoffs: ADEs of PGx. Identified from literature review. - Clopidogrel 
-            NonFatalMI_change_clo<--0.002 #PGx: risk reduction
-            StentThrombosis_change_clo<--0.0011 #PGx: risk reduction
-            NonFatalIntracranial_change_clo<-0.000005 #PGx: risk increase
-            NonFatalExtracranial_change_clo<-0.0008 #PGx: risk increase
-            CABGBleeding_change_clo<-0.000025 #PGx: risk increase
-            MinorBleeding_change_clo<-0.00023  #PGx: risk increase
-            CABGRevascularization_change_clo<--0.00015#PGx: risk reduction
-            PCIRevascularization_change_clo<--0.0016 #PGx: risk reduction
-            CVDeath_change_clo<--0.0016 #PGx: risk reduction
-            NONCVDeath_change_clo<--0.00013 #PGx: risk reduction
+            cost_change_war <- -165 #Updated on 01/23/2021: adjust inflation by CPI
+            
+            # payoffs: ADEs of PGx. Identified from literature review. - Clopidogrel
+            # Updated on 01/23/2021. (1) not adjust 1-year risk, (2) account for variant prevalence in White
+            NonFatalMI_change_clo <- -0.008/0.28 #PGx: risk reduction
+            StentThrombosis_change_clo <- -0.0042/0.28 #PGx: risk reduction
+            NonFatalIntracranial_change_clo <- 0.0002/0.28 #PGx: risk increase
+            NonFatalExtracranial_change_clo <- 0.00032/0.28 #PGx: risk increase
+            CABGBleeding_change_clo <- 0.0001/0.28 #PGx: risk increase
+            MinorBleeding_change_clo <- 0.0011/0.28  #PGx: risk increase
+            CABGRevascularization_change_clo <- -0.0006/0.28 #PGx: risk reduction
+            PCIRevascularization_change_clo <- -0049/0.28 #PGx: risk reduction
+            CVDeath_change_clo <- -0.0065/0.28 #PGx: risk reduction
+            NONCVDeath_change_clo <- -0.0008/0.28 #PGx: risk reduction
+            
             # payoffs: ADEs of PGx. Identified from literature review. - Warfarin 
-            Bleeding_change_war<--0.007 #PGx: risk reduction
-            Clot_change_war<--0.002 #PGx: risk reduction
+            Bleeding_change_war <- -0.007 #PGx: risk reduction
+            Clot_change_war <- -0.002 #PGx: risk reduction
             
             ##Risk of getting clopidogrel for ACS. Joyce updated on 01/12/2021
             p_new_rx_clo_18_24 <- 0.000003
@@ -123,47 +126,59 @@ precisevalueServer <- function(id) {
             dataframe <- reactive({
                 p_clo <- p_clo_a*(input$p_a/100) + p_clo_b*(input$p_b/100) + 
                     p_clo_w*(input$p_w/100)  # population prevalence of clopidogrel variant
-                p_war <- 1                                        # 09/22: we dont need variant prevalence
-                ages <- make_age_pattern()
+                #p_war <- 1                                        # 09/22: we dont need variant prevalence
+                # Population age distribution in probabilities. Notes added on: 01/23/2021
+                ages <- make_age_pattern() 
+                # Testing pattern in probabilities. All capped<= 100%.  Notes added on: 01/23/2021
                 test <- make_test_pattern(input$start_age, input$test_rate, 
                                           input$screen_dur, input$t_horizon)
-                drug <- make_treat_prob() #Joyce updated on 01/12/2021
+                # Risk of getting a new drug. Notes added on: 01/23/2021
+                drug <- make_treat_prob()
                 
                 # get population by year. Joyce updated on 01/12/2021
                 n_age <- data.frame(ages = ages$ages)
                 for(i in 1:input$t_horizon){
-                    temp_col <- input$pop_size * ages$p
+                    temp_col <- input$pop_size * ages$p # total population size multiplied by probability in each age group
                     n_age$temp_col <- temp_col
                     names(n_age)[ncol(n_age)] <- paste0("y", i)
                 }
+                # Results: the number of people in each age group. 
                 
                 # get probability of new clopidogrel rx by year. Joyce updated on 01/12/2021
                 p_new_clo <- data.frame(ages = drug$ages)
                 for(i in 1:input$t_horizon){
-                    temp_col <- drug$c * rr_new_rx_clo
+                    temp_col <- drug$c * rr_new_rx_clo # the probability of getting a drug * a RR parameter to allow for SA
                     p_new_clo$temp_col <- temp_col
                     names(p_new_clo)[ncol(p_new_clo)] <- paste0("y", i)
                 }
+                # Results: the probability of getting a new clopidogrel rx by age
                 
                 # get probability of new warfarin rx by year.Joyce updated on 01/12/2021
                 p_new_war <- data.frame(ages = drug$ages)
                 for(i in 1:input$t_horizon){
-                    temp_col <- drug$w * rr_new_rx_war
+                    temp_col <- drug$w * rr_new_rx_war # the probability of getting a drug * a RR parameter to allow for SA
                     p_new_war$temp_col <- temp_col
                     names(p_new_war)[ncol(p_new_war)] <- paste0("y", i)
                 }
+                # Results: the probability of getting a new warfarin rx by age.
                 
-                # calculate benefit of clopidogrel alert. Joyce updated on 01/12/2021
+                # STEP 1: CLOPIDOGREL: Notes added on: 01/23/2021
+                # (1) get the final number of people who can benefit from alerts and PGx. 
                 n_test <- n_age[,-1] * test[,-1] #number tested 
                 n_var <- n_test * p_clo #number tested positive 
                 n_rx <- n_var * p_new_clo[,-1] #number get clopidogrel
                 
+                # (2) add the total number of people who can benefit from alerts and PGx across 20 years.
                 clo_outcomes <- data.frame(year = seq(1, input$t_horizon),
                                            clo_n_alert = apply(n_rx, 
                                                                2,                   #operate on columns
                                                                function(x) sum(x))) #calculate the total. 
                 
-                #QALYs
+                # (3) calculate results for costs, qaly and ADE
+                # All the results are based on this calculation. Notes added on: 01/23/2021
+                # Payoff = the number of alerts fired * prob of changing treatment * payoff 
+                
+                # QALYs
                 clo_outcomes$clo_noalert_q <- clo_outcomes$clo_n_alert * p_change_no_alert * qaly_change_clo
                 clo_outcomes$clo_alert_q   <- clo_outcomes$clo_n_alert * p_change_alert * qaly_change_clo
                 #Costs - drug and treatment costs, not having added in start-up or maintenance costs yet. 
@@ -201,16 +216,25 @@ precisevalueServer <- function(id) {
                 clo_outcomes$clo_alert_NONCVDeath            <- clo_outcomes$clo_n_alert * p_change_alert * NONCVDeath_change_clo
                 
                 
-                # calculate benefit of warfarin alert. Joyce updated on 01/12/2021
-                n_test <- n_age[,-1] * test[,-1] #number tested by age / year
-                n_var <- n_test * p_war * p_eligible #number people who are eligible to benefit
+                # STEP 2: WARFARIN: Notes added on: 01/23/2021
+                # (1) get the final number of people who can benefit from alerts and PGx
+                
+                # number tested by age = the number of people in each age * the probability of getting tested by age.
+                n_test <- n_age[,-1] * test[,-1]
+                # number tested positive by age = the number of tested by age * the probability of having a warfarin variant * the prob of eligible benefiting
+                n_var <- n_test * p_war * p_eligible
+                # number of benefit = the number of people test positive * the probability of getting a new prescription
                 n_rx <- n_var * p_new_war[,-1]
                 
-                
+                # (2) add the total number of people who can benefit from alerts and PGx across 20 years
                 war_outcomes <- data.frame(year = seq(1, input$t_horizon),
                                            war_n_alert = apply(n_rx,
                                                                2,
                                                                function(x) sum(x)))
+                
+                # (3) calculate results for costs, qaly and ADE
+                # All the results are based on this calculation. Notes added on: 01/23/2021
+                # Payoff = the number of alerts fired * prob of changing treatment * payoff 
                 #QALYs
                 war_outcomes$war_noalert_q        <- war_outcomes$war_n_alert * p_change_no_alert * qaly_change_war
                 war_outcomes$war_alert_q        <- war_outcomes$war_n_alert * p_change_alert * qaly_change_war
@@ -225,14 +249,15 @@ precisevalueServer <- function(id) {
                 war_outcomes$war_alert_clot     <- war_outcomes$war_n_alert * p_change_alert * Clot_change_war
                 
                 
-                # combine drug-specific benefit calculations
+                # STEP 3: Combine results from 2 drugs together
                 outcomes <- merge(clo_outcomes, war_outcomes, by = "year")
                 
-                # add start-up and maintenance costs of alert program. Joyce updated on 01/12/2021
-                outcomes$admin_alert_cost <- input$startup_cost
-                outcomes$admin_alert_cost[2:nrow(outcomes)] <- input$startup_cost * (input$maint_cost/100)
+                # STEP 4: Add start-up and maintenance costs
+                outcomes$admin_alert_cost <- input$startup_cost*100
+                outcomes$admin_alert_cost[2:nrow(outcomes)] <- input$startup_cost*100 * (input$maint_cost/100)
                 
-                # Discounting for costs and QALYs only, not ADEs. Joyce updated on 01/12/2021
+                # STEP 5: Discounting for costs and QALYs only, not ADEs. Notes added on: 01/23/2021
+                # (1) Select relevant columns. 
                 # The number of alerts: 2 for clopidogrel, 27 for warfarin. 
                 # QALYs: 3, 4 for clopidogrel, 28, 29 for warfarin.
                 # Costs: 5, 6 for clopidogrel, 30, 31 for warfarin. & 36 for admin alert costs. 
@@ -241,14 +266,14 @@ precisevalueServer <- function(id) {
                 CLO_ADE<-outcomes[,c(1,2,7:26)]          
                 WAR_ADE<-outcomes[,c(1,27,32:35)]  
                 
-                #discount: CEAoutcomes_discount. Joyce updated on 01/12/2021
+                # (2) Discount: CEAoutcomes_discount
                 for(i in 4:12) {
                     CEAoutcomes_discount[,i] <- mapply(function(x,y) x * (1 / (1 + discount)^(y - 1)),
                                                        x = CEAoutcomes_discount[,i],
                                                        y = CEAoutcomes_discount$year)}
                 
                 
-                #calculate the total costs and QALYs. Joyce updated on 01/12/2021
+                # (3) Calculate the total costs and QALYs
                 CEA_results_discounted<-data.frame(year = CEAoutcomes_discount$year,
                                                    alert_n = rowSums(CEAoutcomes_discount[,c(2,3)]),
                                                    no_alert_qaly = rowSums(CEAoutcomes_discount[,c(4,8)]),
@@ -267,7 +292,7 @@ precisevalueServer <- function(id) {
                                                      alert_cost_admin=CEAoutcomes_nodiscount[,12])
                 
                 
-                #ADE results. Joyce updated on 01/12/2021
+                # (4) ADE results
                 ADE_results_clo<-data.frame(noalert_NonFatalMI=double(),
                                             alert_NonFatalMI=double(),
                                             noalert_StentThrombosis=double(),
@@ -302,7 +327,7 @@ precisevalueServer <- function(id) {
                     ADE_results_war[1,i]<-sum(WAR_ADE[,a])
                 }
                 
-                # Return results. Joyce updated on 01/12/2021
+                # FINAL STEP: RETURN RESULTS
                 results_list<-list(outcomes,
                                    CEA_results_discounted,
                                    CEA_results_undiscounted,
