@@ -46,7 +46,7 @@ precisevalueServer <- function(id) {
     moduleServer(id, function(input, output, session) {
             
             # The user's data, parsed into a data frame. Joyce updated on 01/12/2021
-            dataframe <- reactive({
+            data <- reactive({
                 p_clo <- p_clo_a*(input$p_a/100) + p_clo_b*(input$p_b/100) + 
                     p_clo_w*(input$p_w/100)  # population prevalence of clopidogrel variant
                 #p_war <- 1                                        # 09/22: we dont need variant prevalence
@@ -257,11 +257,20 @@ precisevalueServer <- function(id) {
                                    ADE_results_clo,
                                    ADE_results_war)
                 names(results_list)<-c("All","CEA_results_discounted","CEA_results_undiscounted","ADE_results_clo","ADE_results_war")
-                return(results_list$All)
+                #return(results_list$All)
+                #n_alerts<-as.data.frame(sum(outcomes$clo_n_alert+outcomes$war_n_alert))
+                list(
+                    n_alerts = sum(outcomes$clo_n_alert+outcomes$war_n_alert),
+                    total_cost_no_alert = sum(CEA_results_discounted$no_alert_cost),
+                    total_cost_alert = sum(CEA_results_discounted$alert_cost_total),
+                    qaly_no_alert = sum(CEA_results_discounted$no_alert_qaly),
+                    qaly_alert = sum(CEA_results_discounted$alert_qaly),
+                    table = outcomes
+                )
             })
             
             # Return the reactive that yields the data frame
-            return(dataframe)
+            return(data)
         }
     )    
 }
@@ -285,18 +294,28 @@ ui <- fluidPage(
             precisevalueUI("model_inputs", "Model Inputs")
         ),
         mainPanel(
+            textOutput("n_alerts"),
+            textOutput("total_cost_no_alert"),
+            textOutput("total_cost_alert"),
+            textOutput("qaly_no_alert"),
+            textOutput("qaly_alert"),
             dataTableOutput("table")
         )
     )
 )
 
 server <- function(input, output, session) {
-    datafile <- precisevalueServer("model_inputs")
+    data <- precisevalueServer("model_inputs")
 
     
     output$table <- renderDataTable({
-        datafile()
+        data()$table
     })
+    output$n_alerts <- renderText(paste("Number of alerts: ", data()$n_alerts))
+    output$total_cost_no_alert <- renderText(paste("Total cost without alerts: ", data()$total_cost_no_alert))
+    output$total_cost_alert <- renderText(paste("Total cost with alerts: ", data()$total_cost_alert))
+    output$qaly_no_alert <- renderText(paste("QALY without alerts: ", data()$qaly_no_alert))
+    output$qaly_alert <- renderText(paste("QALY with alerts: ", data()$qaly_alert))
 }
 
 shinyApp(ui, server)
