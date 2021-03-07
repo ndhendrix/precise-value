@@ -47,7 +47,7 @@ n_alerts_war
 # ICER_undiscounted
 
 #####CEA results, discounted#####
-sum(CEA_results_discounted$alert_n)
+# sum(CEA_results_discounted$alert_n)
 
 #(1) costs
 sum(CEA_results_discounted$no_alert_cost)
@@ -96,15 +96,14 @@ inc_adm_cost_discounted
 inc_adm_cost_discounted/n_alerts
 
 
-#####Inc. costs per QALY#####
-##(1) inc. medical costs per QALY
-inc_med_cost_undiscounted/inc_qaly_undiscounted
-inc_med_cost_discounted/inc_qaly_discounted
-
-##(2) inc. admin costs per QALY
-inc_adm_cost_undiscounted/inc_qaly_undiscounted
-inc_adm_cost_discounted/inc_qaly_discounted
-
+# #####Inc. costs per QALY#####
+# ##(1) inc. medical costs per QALY
+# inc_med_cost_undiscounted/inc_qaly_undiscounted
+# inc_med_cost_discounted/inc_qaly_discounted
+# 
+# ##(2) inc. admin costs per QALY
+# inc_adm_cost_undiscounted/inc_qaly_undiscounted
+# inc_adm_cost_discounted/inc_qaly_discounted
 
 
 #####ADE clopidogrel#####
