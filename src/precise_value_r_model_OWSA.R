@@ -3,9 +3,29 @@
 # The three target drugs tested are clopidogrel, simvastatin, and warfarin.
 
 # Model programmed by Nathaniel Hendrix (nhendrix@uw.edu)
-precise_value <- function(){
+
+##Updated 02/19/2021: add 11 parameters for OWSA in the function. 
+precise_value_OWSA <- function(
+                          initial_default=initial_values)
+  {
+  p_change_alert=initial_default[1]
+  p_change_no_alert=initial_default[2]
+  rr_new_rx_clo=initial_default[3]
+  rr_new_rx_war=initial_default[4]
+  
+  start_up_cost_work_hour=initial_default[5]
+  start_up_cost_salary=initial_default[6]
+  maint_cost_proportion=initial_default[7]
+  
+  p_eligible=initial_default[8]
+  qaly_change_clo=initial_default[9]
+  qaly_change_war=initial_default[10]
+  cost_change_clo=initial_default[11]
+  cost_change_war=initial_default[12]
+  
+  
   p_clo <- p_clo_a*p_a + p_clo_b*p_b + p_clo_w*p_w  #population prevalence of clopidogrel variant. 
-  #p_war <- 1                                        #population prevalence of warfarin variant. 09/22/2020: we dont need variant prevalence. 
+  #p_war <- 1                                       #population prevalence of warfarin variant. 09/22/2020: we dont need variant prevalence. 
   
   # read input documents
   #setwd(here())
@@ -20,6 +40,7 @@ precise_value <- function(){
     n_age$temp_col <- temp_col
     names(n_age)[ncol(n_age)] <- paste0("y", i)
   }
+  
   #Results: the number of people in each age group. 
   
   # get probability of new clopidogrel rx by year
@@ -148,8 +169,8 @@ precise_value <- function(){
   #STEP 3: Combine results from 2 drugs together. Notes added on: 01/23/2021
   outcomes <- merge(clo_outcomes, war_outcomes, by = "year")
   
-  #STEP 4: Add start-up and maintenance costs. Notes added on: 01/23/2021. Updated: 03/06/2021
-  start_up_cost <- start_up_cost_work_hour*start_up_cost_salary
+  #STEP 4: Add start-up and maintenance costs. Notes added on: 01/23/2021
+  start_up_cost <- start_up_cost_work_hour * start_up_cost_salary
   outcomes$admin_alert_cost <- start_up_cost
   
   maint_cost <- maint_cost_proportion*start_up_cost

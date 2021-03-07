@@ -1,29 +1,4 @@
 ###
-### Set default values
-###
-
-#1. Regimen change with an alert.
-p_change_alert_default <- p_change_alert
-
-#2. Regimen change without an alert.
-p_change_no_alert_default<-p_change_no_alert
-
-#3. risk of getting clopidogrel. 
-rr_new_rx_clo_default<-rr_new_rx_clo
-
-#4. risk of getting warfarin. 
-rr_new_rx_war_default<-rr_new_rx_war
-
-#5. start-up costs
-start_up_cost_default <- start_up_cost
-
-#6. maintenance costs
-maint_cost_default <- maint_cost
-
-#7. probability of benefiting from PGx for warfarin
-p_eligible_default<-p_eligible
-
-###
 ### load model and get base case ICER
 ###
 
@@ -38,19 +13,74 @@ base_admincostsperalert<-sum(CEA_results_discounted_OWSA$alert_cost_admin)/base_
 base_medicalcostsperalert<-(sum(CEA_results_discounted_OWSA$alert_cost_medical)-sum(CEA_results_discounted_OWSA$no_alert_cost))/base_nalerts
 
 
-###
-### set low and high values. Update: 01/07/2021. 
-###
+##########################################
+##Set input dataframe. Updated: 03/06/2021
 
-#1. Regimen change with an alert. Range: 0.15-0.5, Base: 0.25. 
-p_change_alert_lo <- 0.15
+OWSA_input<-data.frame(matrix(ncol=5,
+                              nrow=12))
+colnames(OWSA_input)<-c("Name",
+                        "Parameter",
+                        "Default",
+                        "Low",
+                        "High")
+##1. Name. Updated: 03/06/2021
+name = c("Probability of regimen change with an alert",
+         "Probability of regimen change without an alert",
+         "Risk of initiating clopidogrel for ACS",
+         "Risk of initiating warfarin for AF",
+         "Number of hours needed to develop the alerting system",
+         "Hourly pay to health informaticians to develop the alerting system",
+         "Proportion of initial development cost as annual maintenance cost",
+         "Proportion of people on warfarin benefit from PGx",
+         "QALY payoff from PGx testing for clopidogrel",
+         "QALY payoff from PGx testing for warfarin",
+         "Cost payoff from PGx testing for clopidogrel",
+         "Cost payoff from PGx testing for warfarin")
+
+OWSA_input$Name<-name
+
+##2. Parameter. Updated: 03/06/2021
+parameter<-c("p_change_alert",
+            "p_change_no_alert",
+            "rr_new_rx_clo",
+            "rr_new_rx_war",
+            "start_up_cost_work_hour",
+            "start_up_cost_salary",
+            "maint_cost_proportion",
+            "p_eligible",
+            "qaly_change_clo",
+            "qaly_change_war",
+            "cost_change_clo",
+            "cost_change_war")
+
+OWSA_input$Parameter<-parameter
+
+##3. Default. Updated: 03/06/2021
+default<-c(p_change_alert,
+           p_change_no_alert,
+           rr_new_rx_clo,
+           rr_new_rx_war,
+           start_up_cost_work_hour,
+           start_up_cost_salary,
+           maint_cost_proportion,
+           p_eligible,
+           qaly_change_clo,
+           qaly_change_war,
+           cost_change_clo,
+           cost_change_war)
+
+OWSA_input$Default<-default
+
+##4. Low and High
+#(1). Regimen change with an alert. Range: 0.20-0.5, Base: 0.25. 
+p_change_alert_lo <- 0.20
 p_change_alert_hi <- 0.5
 
-#2. Regimen change without an alert. Range: 0-0.2, Base: 0.1. 
+#(2). Regimen change without an alert. Range: 0-0.15, Base: 0.1. 
 p_change_no_alert_lo<-0
-p_change_no_alert_hi<-0.2
+p_change_no_alert_hi<-0.15
 
-#3. risk of getting clopidogrel. Range: 0.5-1.5, Base: 1
+#(3). risk of getting clopidogrel. Range: 0.5-1.5, Base: 1
 rr_new_rx_clo_lo<-0.5
 rr_new_rx_clo_hi<-1.5
 
@@ -58,379 +88,185 @@ rr_new_rx_clo_hi<-1.5
 rr_new_rx_war_lo<-0.5
 rr_new_rx_war_hi<-1.5
 
-#5. Start-up costs. Range: 2000-6000, Base: 4000
-start_up_lo <- 2000
-start_up_hi <- 6000 
+#(5). start_up_cost_work_hour. Range: 50-500, Base: 200. Updated: 03/06/2021
+start_up_cost_work_hour_lo <- 50
+start_up_cost_work_hour_hi <- 500
 
-#6. Maintenance costs. Range: 50-150, Base: 100
-maint_cost_lo <- 50
-maint_cost_hi <- 150
+#(6). start_up_cost_salary. Range: 50-150. Base: 100. Updated: 03/06/2021
+start_up_cost_salary_lo <- 50
+start_up_cost_salary_hi <- 150
 
-#7. Probability of benefiting from PGx for warfarin. Range: 0.50-0.75, Base: 0.67. 
+#(7). maint_cost_proportion. Range: 0.1-0.3. Base: 0.2. 
+maint_cost_proportion_lo<-0.1
+maint_cost_proportion_hi<-0.3
+
+#(8). Probability of benefiting from PGx for warfarin. Range: 0.50-0.75, Base: 0.67. 
 p_eligible_lo<-0.50
 p_eligible_hi<-0.75
+
+#(9). QALY payoff from PGx testing for clopidogrel. Range: 0.10-0.25, Base: 0.179 
+qaly_change_clo_lo<-0.10
+qaly_change_clo_hi<-0.25
+
+#(10). QALY payoff from PGx testing for warfarin. RANGE: 0.005-0.011, Base: 0.008
+qaly_change_war_lo<-0.005
+qaly_change_war_hi<-0.011
+
+#(11). Cost payoff from PGx testing for clopidogrel. Range: 5000-10,000, Base: 7043. 
+cost_change_clo_lo<-5000
+cost_change_clo_hi<-10000
+
+#(12). Cost payoff from PGx testing for warfarin. Range: -365, 35. Base: -165. 
+cost_change_war_lo<--365
+cost_change_war_hi<-35
+
+
+low<-c(p_change_alert_lo,
+       p_change_no_alert_lo,
+       rr_new_rx_clo_lo,
+       rr_new_rx_war_lo,
+       start_up_cost_work_hour_lo,
+       start_up_cost_salary_lo,
+       maint_cost_proportion_lo,
+       p_eligible_lo,
+       qaly_change_clo_lo,
+       qaly_change_war_lo,
+       cost_change_clo_lo,
+       cost_change_war_lo)
+
+high<-c(p_change_alert_hi,
+       p_change_no_alert_hi,
+       rr_new_rx_clo_hi,
+       rr_new_rx_war_hi,
+       start_up_cost_work_hour_hi,
+       start_up_cost_salary_hi,
+       maint_cost_proportion_hi,
+       p_eligible_hi,
+       qaly_change_clo_hi,
+       qaly_change_war_hi,
+       cost_change_clo_hi,
+       cost_change_war_hi)
+
+
+OWSA_input$Low<-low
+OWSA_input$High<-high
+View(OWSA_input)
+
 
 
 ###
 ### get values from model for one-ways
 ###
 
-# create output data frame
-OWSA_output <- data.frame(parameter = c("Probability of regimen change with an alert",
-                                        "Probability of regimen change without an alert",
-                                        "Risk of initiating clopidogrel for ACS",
-                                        "Risk of initiating warfarin for AF",
-                                        "One-time start-up cost for alerts",
-                                        "Annual maintenance cost for alerts",
-                                        "Proportion of people on warfarin benefit from PGx"),
-                     lo_icer = rep(0,7),
-                     hi_icer = rep(0,7),
-                     lo_nalerts=rep(0,7),
-                     hi_nalerts=rep(0,7),
-                     lo_totalcostsperalert=rep(0,7),
-                     hi_totalcostsperalert=rep(0,7),
-                     lo_admincostsperalert=rep(0,7),
-                     hi_admincostsperalert=rep(0,7),
-                     lo_medicalcostsperalert=rep(0,7),
-                     hi_medicalcostsperalert=rep(0,7))
+# create output data frame. Updated: 03/06/2021
+OWSA_output_loop <- data.frame(name,
+                          parameter,
+                     lo_icer = rep(0,12),
+                     hi_icer = rep(0,12),
+                     lo_nalerts=rep(0,12),
+                     hi_nalerts=rep(0,12),
+                     lo_totalcostsperalert=rep(0,12),
+                     hi_totalcostsperalert=rep(0,12),
+                     lo_admincostsperalert=rep(0,12),
+                     hi_admincostsperalert=rep(0,12),
+                     lo_medicalcostsperalert=rep(0,12),
+                     hi_medicalcostsperalert=rep(0,12))
 
 # source data input functions for creation of data frames for age distribution, testing patterns, and treatment patterns
 source(here("src", "make_inputs.R"))
 
 ###########################################
-# 1. Probability of regimen change with an alert
-##1-1.  Probability of regimen change with an alert - lo
-p_change_alert <- p_change_alert_lo
-CEA_results_discounted_OWSA <- precise_value()[[2]]
+##LOW: 
+for (i in 1:12){
+  temp=OWSA_input$Low[i] #take one variable's low value
+  initial_values[i]=temp #change the initial value to be the low value
+  
+  #Get results:
+  CEA_results_discounted_OWSA <- precise_value_OWSA(initial_default=initial_values)[[2]]
+  
+  #ICER: 
+  OWSA_output_loop[i,3] <- round((sum(CEA_results_discounted_OWSA$alert_cost_total) - sum(CEA_results_discounted_OWSA$no_alert_cost))/
+                                                                                                         (sum(CEA_results_discounted_OWSA$alert_qaly) - sum(CEA_results_discounted_OWSA$no_alert_qaly)),2)
 
-##(1) ICER
-OWSA_output[OWSA_output$parameter=="Probability of regimen change with an alert","lo_icer"] <- round((sum(CEA_results_discounted_OWSA$alert_cost_total) - sum(CEA_results_discounted_OWSA$no_alert_cost))/
-                                                                                                       (sum(CEA_results_discounted_OWSA$alert_qaly) - sum(CEA_results_discounted_OWSA$no_alert_qaly)),2)
-##(2) the number of alerts
-OWSA_output[OWSA_output$parameter=="Probability of regimen change with an alert","lo_nalerts"]<-sum(CEA_results_discounted_OWSA$alert_n)
+  #Reset default values:
+  initial_values[i]=OWSA_input$Default[i]
+  p_change_alert=initial_values[1]
+  p_change_no_alert=initial_values[2]
+  rr_new_rx_clo=initial_values[3]
+  rr_new_rx_war=initial_values[4]
+  
+  start_up_cost_work_hour=initial_values[5]
+  start_up_cost_salary=initial_values[6]
+  maint_cost_proportion=initial_values[7]
+  
+  p_eligible=initial_values[8]
+  qaly_change_clo=initial_values[9]
+  qaly_change_war=initial_values[10]
+  cost_change_clo=initial_values[11]
+  cost_change_war=initial_values[12]
+}
 
-##(3) total costs per alert
-OWSA_output[OWSA_output$parameter=="Probability of regimen change with an alert","lo_totalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_total)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(4) admin costs per alert
-OWSA_output[OWSA_output$parameter=="Probability of regimen change with an alert","lo_admincostsperalert"]<-sum(CEA_results_discounted_OWSA$alert_cost_admin)/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(5) medical costs per alert
-OWSA_output[OWSA_output$parameter=="Probability of regimen change with an alert","lo_medicalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_medical)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-##1-2.  Probability of regimen change with an alert - hi
-p_change_alert <- p_change_alert_hi
-CEA_results_discounted_OWSA <- precise_value()[[2]]
-
-##(1) ICER
-OWSA_output[OWSA_output$parameter=="Probability of regimen change with an alert","hi_icer"] <- round((sum(CEA_results_discounted_OWSA$alert_cost_total) - sum(CEA_results_discounted_OWSA$no_alert_cost))/
-                                                                                                       (sum(CEA_results_discounted_OWSA$alert_qaly) - sum(CEA_results_discounted_OWSA$no_alert_qaly)),2)
-##(2) the number of alerts
-OWSA_output[OWSA_output$parameter=="Probability of regimen change with an alert","hi_nalerts"]<-sum(CEA_results_discounted_OWSA$alert_n)
-
-##(3) total costs per alert
-OWSA_output[OWSA_output$parameter=="Probability of regimen change with an alert","hi_totalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_total)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(4) admin costs per alert
-OWSA_output[OWSA_output$parameter=="Probability of regimen change with an alert","hi_admincostsperalert"]<-sum(CEA_results_discounted_OWSA$alert_cost_admin)/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(5) medical costs per alert
-OWSA_output[OWSA_output$parameter=="Probability of regimen change with an alert","hi_medicalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_medical)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-# reset data for base case p_change_alert value
-p_change_alert <- p_change_alert_default
-
+View(OWSA_output_loop)
+View(CEA_results_discounted_OWSA)
 ###########################################
-# 2. Probability of regimen change without an alert
-##2-1. Probability of regimen change without an alert - lo
-p_change_no_alert <- p_change_no_alert_lo
-CEA_results_discounted_OWSA <- precise_value()[[2]]
-
-##(1) ICER
-OWSA_output[OWSA_output$parameter=="Probability of regimen change without an alert","lo_icer"] <- round((sum(CEA_results_discounted_OWSA$alert_cost_total) - sum(CEA_results_discounted_OWSA$no_alert_cost))/
-                                                                                                          (sum(CEA_results_discounted_OWSA$alert_qaly) - sum(CEA_results_discounted_OWSA$no_alert_qaly)),2)
-##(2) the number of alerts
-OWSA_output[OWSA_output$parameter=="Probability of regimen change without an alert","lo_nalerts"]<-sum(CEA_results_discounted_OWSA$alert_n)
-
-##(3) total costs per alert
-OWSA_output[OWSA_output$parameter=="Probability of regimen change without an alert","lo_totalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_total)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(4) admin costs per alert
-OWSA_output[OWSA_output$parameter=="Probability of regimen change without an alert","lo_admincostsperalert"]<-sum(CEA_results_discounted_OWSA$alert_cost_admin)/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(5) medical costs per alert
-OWSA_output[OWSA_output$parameter=="Probability of regimen change without an alert","lo_medicalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_medical)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-
-##2-2. Probability of regimen change without an alert - hi
-p_change_no_alert <- p_change_no_alert_hi
-CEA_results_discounted_OWSA <- precise_value()[[2]]
-
-##(1) ICER
-OWSA_output[OWSA_output$parameter=="Probability of regimen change without an alert","hi_icer"] <- round((sum(CEA_results_discounted_OWSA$alert_cost_total) - sum(CEA_results_discounted_OWSA$no_alert_cost))/
-                                                                                                          (sum(CEA_results_discounted_OWSA$alert_qaly) - sum(CEA_results_discounted_OWSA$no_alert_qaly)),2)
-##(2) the number of alerts
-OWSA_output[OWSA_output$parameter=="Probability of regimen change without an alert","hi_nalerts"]<-sum(CEA_results_discounted_OWSA$alert_n)
-
-##(3) total costs per alert
-OWSA_output[OWSA_output$parameter=="Probability of regimen change without an alert","hi_totalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_total)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(4) admin costs per alert
-OWSA_output[OWSA_output$parameter=="Probability of regimen change without an alert","hi_admincostsperalert"]<-sum(CEA_results_discounted_OWSA$alert_cost_admin)/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(5) medical costs per alert
-OWSA_output[OWSA_output$parameter=="Probability of regimen change without an alert","hi_medicalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_medical)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-# reset data for base case p_change_alert value
-p_change_no_alert <- p_change_no_alert_default
-
-
-###########################################
-# 3. Risk of initiating clopidogrel for ACS
-##3-1. Risk of initiating clopidogrel for ACS - lo
-rr_new_rx_clo<-rr_new_rx_clo_lo
-CEA_results_discounted_OWSA <- precise_value()[[2]]
-
-##(1) ICER
-OWSA_output[OWSA_output$parameter=="Risk of initiating clopidogrel for ACS","lo_icer"] <- round((sum(CEA_results_discounted_OWSA$alert_cost_total) - sum(CEA_results_discounted_OWSA$no_alert_cost))/
-                                                                                                          (sum(CEA_results_discounted_OWSA$alert_qaly) - sum(CEA_results_discounted_OWSA$no_alert_qaly)),2)
-##(2) the number of alerts
-OWSA_output[OWSA_output$parameter=="Risk of initiating clopidogrel for ACS","lo_nalerts"]<-sum(CEA_results_discounted_OWSA$alert_n)
-
-##(3) total costs per alert
-OWSA_output[OWSA_output$parameter=="Risk of initiating clopidogrel for ACS","lo_totalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_total)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(4) admin costs per alert
-OWSA_output[OWSA_output$parameter=="Risk of initiating clopidogrel for ACS","lo_admincostsperalert"]<-sum(CEA_results_discounted_OWSA$alert_cost_admin)/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(5) medical costs per alert
-OWSA_output[OWSA_output$parameter=="Risk of initiating clopidogrel for ACS","lo_medicalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_medical)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-
-##3-2. Risk of initiating clopidogrel for ACS - hi
-rr_new_rx_clo<-rr_new_rx_clo_hi
-CEA_results_discounted_OWSA <- precise_value()[[2]]
-
-##(1) ICER
-OWSA_output[OWSA_output$parameter=="Risk of initiating clopidogrel for ACS","hi_icer"] <- round((sum(CEA_results_discounted_OWSA$alert_cost_total) - sum(CEA_results_discounted_OWSA$no_alert_cost))/
-                                                                                                          (sum(CEA_results_discounted_OWSA$alert_qaly) - sum(CEA_results_discounted_OWSA$no_alert_qaly)),2)
-##(2) the number of alerts
-OWSA_output[OWSA_output$parameter=="Risk of initiating clopidogrel for ACS","hi_nalerts"]<-sum(CEA_results_discounted_OWSA$alert_n)
-
-##(3) total costs per alert
-OWSA_output[OWSA_output$parameter=="Risk of initiating clopidogrel for ACS","hi_totalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_total)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(4) admin costs per alert
-OWSA_output[OWSA_output$parameter=="Risk of initiating clopidogrel for ACS","hi_admincostsperalert"]<-sum(CEA_results_discounted_OWSA$alert_cost_admin)/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(5) medical costs per alert
-OWSA_output[OWSA_output$parameter=="Risk of initiating clopidogrel for ACS","hi_medicalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_medical)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-# reset base case value
-rr_new_rx_clo <- rr_new_rx_clo_default
-
-
-
-###########################################
-# 4. Risk of initiating warfarin for AF
-##4-1. Risk of initiating warfarin for AF - lo
-rr_new_rx_war<-rr_new_rx_war_lo
-CEA_results_discounted_OWSA <- precise_value()[[2]]
-
-##(1) ICER
-OWSA_output[OWSA_output$parameter=="Risk of initiating warfarin for AF","lo_icer"] <- round((sum(CEA_results_discounted_OWSA$alert_cost_total) - sum(CEA_results_discounted_OWSA$no_alert_cost))/
-                                                                                                  (sum(CEA_results_discounted_OWSA$alert_qaly) - sum(CEA_results_discounted_OWSA$no_alert_qaly)),2)
-##(2) the number of alerts
-OWSA_output[OWSA_output$parameter=="Risk of initiating warfarin for AF","lo_nalerts"]<-sum(CEA_results_discounted_OWSA$alert_n)
-
-##(3) total costs per alert
-OWSA_output[OWSA_output$parameter=="Risk of initiating warfarin for AF","lo_totalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_total)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(4) admin costs per alert
-OWSA_output[OWSA_output$parameter=="Risk of initiating warfarin for AF","lo_admincostsperalert"]<-sum(CEA_results_discounted_OWSA$alert_cost_admin)/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(5) medical costs per alert
-OWSA_output[OWSA_output$parameter=="Risk of initiating warfarin for AF","lo_medicalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_medical)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-
-##4-2. Risk of initiating warfarin for AF - hi
-rr_new_rx_war<-rr_new_rx_war_hi
-CEA_results_discounted_OWSA <- precise_value()[[2]]
-
-##(1) ICER
-OWSA_output[OWSA_output$parameter=="Risk of initiating warfarin for AF","hi_icer"] <- round((sum(CEA_results_discounted_OWSA$alert_cost_total) - sum(CEA_results_discounted_OWSA$no_alert_cost))/
-                                                                                                  (sum(CEA_results_discounted_OWSA$alert_qaly) - sum(CEA_results_discounted_OWSA$no_alert_qaly)),2)
-##(2) the number of alerts
-OWSA_output[OWSA_output$parameter=="Risk of initiating warfarin for AF","hi_nalerts"]<-sum(CEA_results_discounted_OWSA$alert_n)
-
-##(3) total costs per alert
-OWSA_output[OWSA_output$parameter=="Risk of initiating warfarin for AF","hi_totalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_total)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(4) admin costs per alert
-OWSA_output[OWSA_output$parameter=="Risk of initiating warfarin for AF","hi_admincostsperalert"]<-sum(CEA_results_discounted_OWSA$alert_cost_admin)/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(5) medical costs per alert
-OWSA_output[OWSA_output$parameter=="Risk of initiating warfarin for AF","hi_medicalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_medical)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-# reset base case value
-rr_new_rx_war <- rr_new_rx_war_default
-
-
-###########################################
-###5. One-time start-up cost for alerts
-##5-1. One-time start-up cost for alerts - lo
-start_up_cost <- start_up_lo
-CEA_results_discounted_OWSA <- precise_value()[[2]]
-
-##(1) ICER
-OWSA_output[OWSA_output$parameter=="One-time start-up cost for alerts","lo_icer"] <- round((sum(CEA_results_discounted_OWSA$alert_cost_total) - sum(CEA_results_discounted_OWSA$no_alert_cost))/
-                                                                                   (sum(CEA_results_discounted_OWSA$alert_qaly) - sum(CEA_results_discounted_OWSA$no_alert_qaly)),2)
-##(2) the number of alerts
-OWSA_output[OWSA_output$parameter=="One-time start-up cost for alerts","lo_nalerts"]<-sum(CEA_results_discounted_OWSA$alert_n)
-
-##(3) total costs per alert
-OWSA_output[OWSA_output$parameter=="One-time start-up cost for alerts","lo_totalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_total)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(4) admin costs per alert
-OWSA_output[OWSA_output$parameter=="One-time start-up cost for alerts","lo_admincostsperalert"]<-sum(CEA_results_discounted_OWSA$alert_cost_admin)/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(5) medical costs per alert
-OWSA_output[OWSA_output$parameter=="One-time start-up cost for alerts","lo_medicalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_medical)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-##5-2. One-time start-up cost for alerts - hi
-start_up_cost <- start_up_hi
-CEA_results_discounted_OWSA <- precise_value()[[2]]
-
-##(1) ICER
-OWSA_output[OWSA_output$parameter=="One-time start-up cost for alerts","hi_icer"] <- round((sum(CEA_results_discounted_OWSA$alert_cost_total) - sum(CEA_results_discounted_OWSA$no_alert_cost))/
-                                                                                    (sum(CEA_results_discounted_OWSA$alert_qaly) - sum(CEA_results_discounted_OWSA$no_alert_qaly)),2)
-##(2) the number of alerts
-OWSA_output[OWSA_output$parameter=="One-time start-up cost for alerts","hi_nalerts"]<-sum(CEA_results_discounted_OWSA$alert_n)
-
-##(3) total costs per alert
-OWSA_output[OWSA_output$parameter=="One-time start-up cost for alerts","hi_totalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_total)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(4) admin costs per alert
-OWSA_output[OWSA_output$parameter=="One-time start-up cost for alerts","hi_admincostsperalert"]<-sum(CEA_results_discounted_OWSA$alert_cost_admin)/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(5) medical costs per alert
-OWSA_output[OWSA_output$parameter=="One-time start-up cost for alerts","hi_medicalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_medical)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-# reset data for base case start up cost value
-start_up_cost <- start_up_cost_default
-
-###########################################
-###6. Annual maintenance cost for alerts
-##6-1. Annual maintenance cost for alerts - lo
-maint_cost <- maint_cost_lo
-CEA_results_discounted_OWSA <- precise_value()[[2]]
-
-##(1) ICER
-OWSA_output[OWSA_output$parameter=="Annual maintenance cost for alerts","lo_icer"] <- round((sum(CEA_results_discounted_OWSA$alert_cost_total) - sum(CEA_results_discounted_OWSA$no_alert_cost))/
-                                                                                    (sum(CEA_results_discounted_OWSA$alert_qaly) - sum(CEA_results_discounted_OWSA$no_alert_qaly)),2)
-##(2) the number of alerts
-OWSA_output[OWSA_output$parameter=="Annual maintenance cost for alerts","lo_nalerts"]<-sum(CEA_results_discounted_OWSA$alert_n)
-
-##(3) total costs per alert
-OWSA_output[OWSA_output$parameter=="Annual maintenance cost for alerts","lo_totalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_total)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(4) admin costs per alert
-OWSA_output[OWSA_output$parameter=="Annual maintenance cost for alerts","lo_admincostsperalert"]<-sum(CEA_results_discounted_OWSA$alert_cost_admin)/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(5) medical costs per alert
-OWSA_output[OWSA_output$parameter=="Annual maintenance cost for alerts","lo_medicalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_medical)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-##6-2. Annual maintenance cost for alerts - hi
-maint_cost <- maint_cost_hi
-CEA_results_discounted_OWSA <- precise_value()[[2]]
-
-##(1) ICER
-OWSA_output[OWSA_output$parameter=="Annual maintenance cost for alerts","hi_icer"] <- round((sum(CEA_results_discounted_OWSA$alert_cost_total) - sum(CEA_results_discounted_OWSA$no_alert_cost))/
-                                                                                    (sum(CEA_results_discounted_OWSA$alert_qaly) - sum(CEA_results_discounted_OWSA$no_alert_qaly)),2)
-##(2) the number of alerts
-OWSA_output[OWSA_output$parameter=="Annual maintenance cost for alerts","hi_nalerts"]<-sum(CEA_results_discounted_OWSA$alert_n)
-
-##(3) total costs per alert
-OWSA_output[OWSA_output$parameter=="Annual maintenance cost for alerts","hi_totalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_total)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(4) admin costs per alert
-OWSA_output[OWSA_output$parameter=="Annual maintenance cost for alerts","hi_admincostsperalert"]<-sum(CEA_results_discounted_OWSA$alert_cost_admin)/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(5) medical costs per alert
-OWSA_output[OWSA_output$parameter=="Annual maintenance cost for alerts","hi_medicalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_medical)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-# reset data for base case maint_cost value
-maint_cost <- maint_cost_default
-
-###########################################
-###7. Proportion of people on warfarin benefit from PGx
-##7-1. Proportion of people on warfarin benefit from PGx - lo
-p_eligible<-p_eligible_lo
-CEA_results_discounted_OWSA <- precise_value()[[2]]
-
-##(1) ICER
-OWSA_output[OWSA_output$parameter=="Proportion of people on warfarin benefit from PGx","lo_icer"] <- round((sum(CEA_results_discounted_OWSA$alert_cost_total) - sum(CEA_results_discounted_OWSA$no_alert_cost))/
-                                                                                                             (sum(CEA_results_discounted_OWSA$alert_qaly) - sum(CEA_results_discounted_OWSA$no_alert_qaly)),2)
-##(2) the number of alerts
-OWSA_output[OWSA_output$parameter=="Proportion of people on warfarin benefit from PGx","lo_nalerts"]<-sum(CEA_results_discounted_OWSA$alert_n)
-
-##(3) total costs per alert
-OWSA_output[OWSA_output$parameter=="Proportion of people on warfarin benefit from PGx","lo_totalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_total)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(4) admin costs per alert
-OWSA_output[OWSA_output$parameter=="Proportion of people on warfarin benefit from PGx","lo_admincostsperalert"]<-sum(CEA_results_discounted_OWSA$alert_cost_admin)/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(5) medical costs per alert
-OWSA_output[OWSA_output$parameter=="Proportion of people on warfarin benefit from PGx","lo_medicalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_medical)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-
-##7-2. Proportion of people on warfarin benefit from PGx - hi
-p_eligible<-p_eligible_hi
-CEA_results_discounted_OWSA <- precise_value()[[2]]
-
-##(1) ICER
-OWSA_output[OWSA_output$parameter=="Proportion of people on warfarin benefit from PGx","hi_icer"] <- round((sum(CEA_results_discounted_OWSA$alert_cost_total) - sum(CEA_results_discounted_OWSA$no_alert_cost))/
-                                                                                                          (sum(CEA_results_discounted_OWSA$alert_qaly) - sum(CEA_results_discounted_OWSA$no_alert_qaly)),2)
-##(2) the number of alerts
-OWSA_output[OWSA_output$parameter=="Proportion of people on warfarin benefit from PGx","hi_nalerts"]<-sum(CEA_results_discounted_OWSA$alert_n)
-
-##(3) total costs per alert
-OWSA_output[OWSA_output$parameter=="Proportion of people on warfarin benefit from PGx","hi_totalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_total)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(4) admin costs per alert
-OWSA_output[OWSA_output$parameter=="Proportion of people on warfarin benefit from PGx","hi_admincostsperalert"]<-sum(CEA_results_discounted_OWSA$alert_cost_admin)/sum(CEA_results_discounted_OWSA$alert_n)
-
-##(5) medical costs per alert
-OWSA_output[OWSA_output$parameter=="Proportion of people on warfarin benefit from PGx","hi_medicalcostsperalert"]<-(sum(CEA_results_discounted_OWSA$alert_cost_medical)-sum(CEA_results_discounted_OWSA$no_alert_cost))/sum(CEA_results_discounted_OWSA$alert_n)
-
-# reset data for base case p_change_alert value
-p_eligible<-p_eligible_default
-
+##HIGH:
+for (i in 1:12){
+  temp=OWSA_input$High[i]
+  initial_values[i]=temp
+  CEA_results_discounted_OWSA <- precise_value_OWSA(initial_default=initial_values)[[2]]
+  
+  #ICER: 
+  OWSA_output_loop[i,4] <- round((sum(CEA_results_discounted_OWSA$alert_cost_total) - sum(CEA_results_discounted_OWSA$no_alert_cost))/
+                              (sum(CEA_results_discounted_OWSA$alert_qaly) - sum(CEA_results_discounted_OWSA$no_alert_qaly)),2)
+  
+  #Reset default values:
+  initial_values[i]=OWSA_input$Default[i]
+  p_change_alert=initial_values[1]
+  p_change_no_alert=initial_values[2]
+  rr_new_rx_clo=initial_values[3]
+  rr_new_rx_war=initial_values[4]
+  
+  start_up_cost_work_hour=initial_values[5]
+  start_up_cost_salary=initial_values[6]
+  maint_cost_proportion=initial_values[7]
+  
+  p_eligible=initial_values[8]
+  qaly_change_clo=initial_values[9]
+  qaly_change_war=initial_values[10]
+  cost_change_clo=initial_values[11]
+  cost_change_war=initial_values[12]
+}
+
+View(OWSA_output_loop)
 
 #######################################
 ### plot tornado diagram - ICER
 #######################################
 
-ICER_OWSA <- OWSA_output[,1:3] %>%
+ICER_OWSA <- OWSA_output_loop[,c(1,3,4)] %>%
   mutate(distance = (abs(hi_icer - base_icer) + abs(lo_icer - base_icer))/2) %>%
   gather("type", "value", 2:3)
 
-ICER_OWSA$parameter <- reorder(ICER_OWSA$parameter,
-                               ICER_OWSA$distance,
-                                    FUN = max)
+# View(ICER_OWSA)
+
+ICER_OWSA$name <- reorder(ICER_OWSA$name,
+                          ICER_OWSA$distance,
+                          FUN = max)
+
 
 ICER_OWSA <- ICER_OWSA %>%
   mutate(ymax = ifelse(value > base_icer, value, base_icer),
          ymin = ifelse(value < base_icer, value, base_icer))
 
+#plot:
 width = 0.95
 
 plot_ICER_OWSA<- ggplot() +
   geom_rect(data = ICER_OWSA,
             aes(ymax = ymax,
                 ymin = ymin,
-                xmin = as.numeric(parameter) - width / 2,
-                xmax = as.numeric(parameter) + width / 2,
+                xmin = as.numeric(name) - width / 2,
+                xmax = as.numeric(name) + width / 2,
                 fill = type)) +
   theme_bw(base_size = 10) +
   theme(axis.title.y = element_blank(),
@@ -440,7 +276,7 @@ plot_ICER_OWSA<- ggplot() +
   scale_y_continuous(name = "Incremental Cost-Effectiveness Ratio PGx-CDS Alerts Versus No Alert",
                      labels = dollar_format()) +
   scale_x_continuous(breaks = c(1:nrow(ICER_OWSA[ICER_OWSA$type == "lo_icer",])),
-                     labels = levels(ICER_OWSA$parameter)) +
+                     labels = levels(ICER_OWSA$name)) +
   scale_fill_discrete(labels = c("High value", "Low value")) +
   coord_flip()
 

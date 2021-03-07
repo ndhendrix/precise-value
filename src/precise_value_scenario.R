@@ -1,4 +1,6 @@
 ##Scenario 1: HIGH TESTING. UPDATED: 01/23/2021
+####################################################################
+####################################################################
 ##AGE AT ENTRY: 45
 ##TESTING AGE RANGE: 30
 ##TESTING RATE PER YEAR: 100%
@@ -25,3 +27,11 @@ start_age <- 55 # age at start of screening
 screen_dur <- 10 # age duration
 test_rate <- 0.01  # annual probability of PGx.
 start_age <- 55 # age at start of screening
+
+####################################################################
+####################################################################
+##Change to the default (base-case)
+screen_dur <- 10 # age duration
+test_rate <- 0.20  # annual probability of PGx.
+start_age <- 55 # age at start of screening
+

@@ -25,26 +25,26 @@ n_alerts_clo
 n_alerts_war<-sum(outcomes$war_n_alert)
 n_alerts_war
 
-#####CEA results, undiscounted#####
-#(1) costs
-sum(CEA_results_undiscounted$no_alert_cost)
-sum(CEA_results_undiscounted$alert_cost_total)
-
-#(2) QALYs
-sum(CEA_results_undiscounted$no_alert_qaly)
-sum(CEA_results_undiscounted$alert_qaly)
-
-#(3) Inc costs
-inc_cost_undiscounted<-round(sum(CEA_results_undiscounted$alert_cost_total)-sum(CEA_results_undiscounted$no_alert_cost),2)
-inc_cost_undiscounted
-
-#(4) Inc QALYs
-inc_qaly_undiscounted<-round(sum(CEA_results_undiscounted$alert_qaly)-sum(CEA_results_undiscounted$no_alert_qaly),2)
-inc_qaly_undiscounted
-
-#(5) ICER
-ICER_undiscounted<-inc_cost_undiscounted/inc_qaly_undiscounted
-ICER_undiscounted
+# #####CEA results, undiscounted#####
+# #(1) costs
+# sum(CEA_results_undiscounted$no_alert_cost)
+# sum(CEA_results_undiscounted$alert_cost_total)
+# 
+# #(2) QALYs
+# sum(CEA_results_undiscounted$no_alert_qaly)
+# sum(CEA_results_undiscounted$alert_qaly)
+# 
+# #(3) Inc costs
+# inc_cost_undiscounted<-round(sum(CEA_results_undiscounted$alert_cost_total)-sum(CEA_results_undiscounted$no_alert_cost),2)
+# inc_cost_undiscounted
+# 
+# #(4) Inc QALYs
+# inc_qaly_undiscounted<-round(sum(CEA_results_undiscounted$alert_qaly)-sum(CEA_results_undiscounted$no_alert_qaly),2)
+# inc_qaly_undiscounted
+# 
+# #(5) ICER
+# ICER_undiscounted<-inc_cost_undiscounted/inc_qaly_undiscounted
+# ICER_undiscounted
 
 #####CEA results, discounted#####
 sum(CEA_results_discounted$alert_n)
@@ -72,27 +72,27 @@ ICER_discounted
 
 #####Costs per alerts#####
 #(1) total costs
-inc_cost_undiscounted/n_alerts
+# inc_cost_undiscounted/n_alerts
 inc_cost_discounted/n_alerts
 
 #(2) medical costs
-inc_med_cost_undiscounted<-sum(CEA_results_undiscounted$alert_cost_medical)-sum(CEA_results_undiscounted$no_alert_cost)
-inc_med_cost_undiscounted
+# # inc_med_cost_undiscounted<-sum(CEA_results_undiscounted$alert_cost_medical)-sum(CEA_results_undiscounted$no_alert_cost)
+# inc_med_cost_undiscounted
 
 inc_med_cost_discounted<-sum(CEA_results_discounted$alert_cost_medical)-sum(CEA_results_discounted$no_alert_cost)
 inc_med_cost_discounted
 
-inc_med_cost_undiscounted/n_alerts
+# inc_med_cost_undiscounted/n_alerts
 inc_med_cost_discounted/n_alerts
 
 #(3) admin costs
-inc_adm_cost_undiscounted<-sum(CEA_results_undiscounted$alert_cost_admin)
-inc_adm_cost_undiscounted
+# inc_adm_cost_undiscounted<-sum(CEA_results_undiscounted$alert_cost_admin)
+# inc_adm_cost_undiscounted
 
 inc_adm_cost_discounted<-sum(CEA_results_discounted$alert_cost_admin)
 inc_adm_cost_discounted
 
-inc_adm_cost_undiscounted/n_alerts
+# inc_adm_cost_undiscounted/n_alerts
 inc_adm_cost_discounted/n_alerts
 
 
@@ -164,14 +164,21 @@ ADE_result_clo_report[1,11]<-round(ADE_results_clo[,19],3)
 ADE_result_clo_report[2,11]<-round(ADE_results_clo[,20],3)
 ADE_result_clo_report[3,11]<-round(ADE_results_clo[,20],3)-round(ADE_results_clo[,19],3)
 
+View(ADE_result_clo_report)
+
 #####ADE warfarin#####
+ADE_result_war_report<-data.frame(matrix(nrow=3,ncol=3))
+colnames(ADE_result_war_report)<-c("Intervention","Bleeding","Clotting")
+ADE_result_war_report[,1]<-c("No Alerts","Alerts","Incremental")
+
 #(1) Bleeding
-round(ADE_results_war[,1],3)
-round(ADE_results_war[,2],3)
-round(ADE_results_war[,2],3)-round(ADE_results_war[,1],3)
+ADE_result_war_report[1,2]<-round(ADE_results_war[,1],3)
+ADE_result_war_report[2,2]<-round(ADE_results_war[,2],3)
+ADE_result_war_report[3,2]<-round(ADE_results_war[,2],3)-round(ADE_results_war[,1],3)
 
 #(2) clot
-round(ADE_results_war[,3],3)
-round(ADE_results_war[,4],3)
-round(ADE_results_war[,4],3)-round(ADE_results_war[,3],3)
+ADE_result_war_report[1,3]<-round(ADE_results_war[,3],3)
+ADE_result_war_report[2,3]<-round(ADE_results_war[,4],3)
+ADE_result_war_report[3,3]<-round(ADE_results_war[,4],3)-round(ADE_results_war[,3],3)
 
+View(ADE_result_war_report)
