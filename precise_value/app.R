@@ -8,6 +8,7 @@
 #
 
 library(shiny)
+library(shinydashboard)
 library(here)
 library(tidyverse)
 source(here("R", "make_inputs.R"))
@@ -288,21 +289,48 @@ precisevalueServer <- function(id) {
 #     )
 # }
 
-ui <- fluidPage(
-    sidebarLayout(
-        sidebarPanel(
-            precisevalueUI("model_inputs", "Model Inputs")
+ui <- dashboardPage(
+    dashboardHeader(title = "PRECISE Value"),
+    dashboardSidebar(
+        menuItem("Summary", tabName = "summary", icon = icon("dashboard")),
+        menuItem("Year by year numbers", tabName = "table", icon = icon("table")),
+        menuItem("Background information", tabName = "info", icon = icon("table"))
         ),
-        mainPanel(
-            textOutput("n_alerts"),
-            textOutput("total_cost_no_alert"),
-            textOutput("total_cost_alert"),
-            textOutput("qaly_no_alert"),
-            textOutput("qaly_alert"),
-            dataTableOutput("table")
-        )
+    dashboardBody(
+        tabItems(
+            tabItem(tabName = "summary",
+                    h2(
+                        sidebarPanel(
+                            precisevalueUI("model_inputs", "Model Inputs")
+                        ),
+                        fluidRow(
+                            valueBoxOutput("n_alerts"),
+                            valueBoxOutput("total_cost_no_alert"),
+                            valueBoxOutput("total_cost_alert"),
+                            #box(textOutput("qaly_no_alert")),
+                            #box(textOutput("qaly_alert"),)
+                        )
+                    )
+                    ),
+            tabItem(tabName = "table",
+                    h2(
+                        sidebarPanel(
+                            precisevalueUI("model_inputs", "Model Inputs")
+                        ),
+                        fluidRow(
+                            box(dataTableOutput("table"))
+                        ) 
+                    )
+                    ),
+            tabItem(tabName = "info",
+                h2(
+                    
+                )
+            )
+            )
     )
-)
+    )
+
 
 server <- function(input, output, session) {
     data <- precisevalueServer("model_inputs")
@@ -311,9 +339,17 @@ server <- function(input, output, session) {
     output$table <- renderDataTable({
         data()$table
     })
-    output$n_alerts <- renderText(paste("Number of alerts: ", data()$n_alerts))
-    output$total_cost_no_alert <- renderText(paste("Total cost without alerts: ", data()$total_cost_no_alert))
-    output$total_cost_alert <- renderText(paste("Total cost with alerts: ", data()$total_cost_alert))
+    output$n_alerts <- renderValueBox({
+        valueBox(
+            "Number of alerts", round(data()$n_alerts, 0)
+        )
+    })
+    output$total_cost_no_alert <- renderValueBox({
+        valueBox("Total cost without alerts", paste0("$", round(data()$total_cost_no_alert, 0)))
+    })
+    output$total_cost_alert <- renderValueBox({
+        valueBox("Total cost with alerts", paste0("$", round(data()$total_cost_alert, 0)))
+    })
     output$qaly_no_alert <- renderText(paste("QALY without alerts: ", data()$qaly_no_alert))
     output$qaly_alert <- renderText(paste("QALY with alerts: ", data()$qaly_alert))
 }
