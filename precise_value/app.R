@@ -57,7 +57,7 @@ precisevalueServer <- function(id) {
                                           input$screen_dur, input$t_horizon)
                 # Risk of getting a new drug. Notes added on: 01/23/2021
                 drug <- make_treat_prob()
-                
+
                 # get population by year. Joyce updated on 01/12/2021
                 n_age <- data.frame(ages = ages$ages)
                 for(i in 1:input$t_horizon){

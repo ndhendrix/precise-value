@@ -11,7 +11,7 @@ make_test_pattern <- function(start_age, test_rate, screen_dur, t_horizon) {
     names(test_pattern_df)[ncol(test_pattern_df)] <- paste0("y", i)
   }
   
-  test_pattern_df[,2:t_horizon] <- apply(test_pattern_df[,2:t_horizon],
+  test_pattern_df[,2:t_horizon+1] <- apply(test_pattern_df[,2:t_horizon+1],
                      c(1,2),
                      function(x) min(x, 1))
   
