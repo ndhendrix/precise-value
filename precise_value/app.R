@@ -11,8 +11,15 @@ library(shiny)
 library(shinydashboard)
 library(here)
 library(tidyverse)
+library(DT)
 source(here("R", "make_inputs.R"))
 source(here("R", "model_parameters.R"))
+
+convertMenuItem <- function(mi,tabName) {
+    mi$children[[1]]$attribs['data-toggle']="tab"
+    mi$children[[1]]$attribs['data-value'] = tabName
+    mi
+}
 
 # Module UI function
 precisevalueUI <- function(id, label = "model inputs") {
@@ -292,21 +299,29 @@ precisevalueServer <- function(id) {
 ui <- dashboardPage(
     dashboardHeader(title = "PRECISE Value"),
     dashboardSidebar(
+        width = 350,
         menuItem("Summary", tabName = "summary", icon = icon("dashboard")),
         menuItem("Year by year numbers", tabName = "table", icon = icon("table")),
-        menuItem("Background information", tabName = "info", icon = icon("table"))
+        menuItem("Background information", tabName = "info", icon = icon("table")),
+        sidebarMenu(
+            convertMenuItem(menuItem("Data Selection", tabName = "ds",
+                                     precisevalueUI("model_inputs", "Model Inputs")), tabName = "ds")
+        )
         ),
     dashboardBody(
+        tags$head( 
+            tags$style(HTML(".main-sidebar { font-size: 20px; }")) #change the font size to 20
+        ),
         tabItems(
             tabItem(tabName = "summary",
                     h2(
-                        sidebarPanel(
-                            precisevalueUI("model_inputs", "Model Inputs")
-                        ),
+                        # sidebarPanel(
+                        #     precisevalueUI("model_inputs", "Model Inputs")
+                        # ),
                         fluidRow(
                             valueBoxOutput("n_alerts"),
                             valueBoxOutput("total_cost_no_alert"),
-                            valueBoxOutput("total_cost_alert"),
+                            valueBoxOutput("total_cost_alert")
                             #box(textOutput("qaly_no_alert")),
                             #box(textOutput("qaly_alert"),)
                         )
@@ -314,14 +329,18 @@ ui <- dashboardPage(
                     ),
             tabItem(tabName = "table",
                     h2(
-                        sidebarPanel(
-                            precisevalueUI("model_inputs", "Model Inputs")
-                        ),
+                        # sidebarPanel(
+                        #     precisevalueUI("model_inputs", "Model Inputs")
+                        # ),
                         fluidRow(
-                            box(dataTableOutput("table"))
+                            column(width = 12,
+                                   box(
+                                       title = "All data", width = NULL, status = "primary",
+                                       div(style = 'overflow-x: scroll', DT::dataTableOutput('table'))
+                                   )
                         ) 
                     )
-                    ),
+                    )),
             tabItem(tabName = "info",
                 h2(
                     
@@ -336,8 +355,12 @@ server <- function(input, output, session) {
     data <- precisevalueServer("model_inputs")
 
     
-    output$table <- renderDataTable({
-        data()$table
+    # output$table <- renderDataTable({
+    #     data()$table
+    # })
+    output$table <- DT::renderDataTable({
+        DT::datatable(data()$table, 
+                      options = list(dom = 't'))
     })
     output$n_alerts <- renderValueBox({
         valueBox(
