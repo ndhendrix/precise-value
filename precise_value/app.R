@@ -2,10 +2,7 @@
 # This is a Shiny web application. You can run the application by clicking
 # the 'Run App' button above.
 #
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
+
 
 library(shiny)
 library(shinydashboard)
@@ -300,13 +297,19 @@ ui <- dashboardPage(
     dashboardHeader(title = "PRECISE Value"),
     dashboardSidebar(
         width = 350,
-        menuItem("Summary", tabName = "summary", icon = icon("dashboard")),
-        menuItem("Year by year numbers", tabName = "table", icon = icon("table")),
-        menuItem("Background information", tabName = "info", icon = icon("table")),
+        tags$head(
+            tags$style(HTML("
+                      .sidebar { height: 95vh; overflow-y: auto; }
+                      " )
+            )
+        ),
         sidebarMenu(
-            convertMenuItem(menuItem("Data Selection", tabName = "ds",
-                                     precisevalueUI("model_inputs", "Model Inputs")), tabName = "ds")
-        )
+            id = "sbMenu",
+            menuItem("Summary", tabName = "summary", icon = icon("dashboard")),
+            menuItem("Year by year numbers", tabName = "table", icon = icon("table")),
+            menuItem("Background information", tabName = "info", icon = icon("table")),
+            menuItem("Data Selection", tabName = "ds", startExpanded = TRUE,
+                     precisevalueUI("model_inputs", "Model Inputs")))
         ),
     dashboardBody(
         tags$head( 
