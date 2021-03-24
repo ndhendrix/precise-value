@@ -364,14 +364,14 @@ server <- function(input, output, session) {
     })
     output$n_alerts <- renderValueBox({
         valueBox(
-            "Number of alerts", round(data()$n_alerts, 0)
+            round(data()$n_alerts, 0), "Number of alerts"
         )
     })
     output$total_cost_no_alert <- renderValueBox({
-        valueBox("Total cost without alerts", paste0("$", round(data()$total_cost_no_alert, 0)))
+        valueBox(paste0("$", round(data()$total_cost_no_alert, 0)), "Total cost without alerts")
     })
     output$total_cost_alert <- renderValueBox({
-        valueBox("Total cost with alerts", paste0("$", round(data()$total_cost_alert, 0)))
+        valueBox(paste0("$", round(data()$total_cost_alert, 0)), "Total cost with alerts")
     })
     output$qaly_no_alert <- renderText(paste("QALY without alerts: ", data()$qaly_no_alert))
     output$qaly_alert <- renderText(paste("QALY with alerts: ", data()$qaly_alert))
