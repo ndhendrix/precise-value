@@ -15,7 +15,7 @@ make_test_pattern <- function(start_age, test_rate, screen_dur, t_horizon) {
                      c(1,2),
                      function(x) min(x, 1))
   
-  return(test_pattern_df)
+  return(as_tibble(test_pattern_df))
   #write.csv(df, here("inputs", "test_pattern.csv"), row.names = FALSE)
   
   #Sys.sleep(0.0001)
