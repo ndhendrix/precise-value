@@ -26,14 +26,14 @@ precisevalueUI <- function(id, label = "model inputs") {
     
     tagList(
         numericInput(ns("pop_size"), label = "Population size:", value = 500000), ##Joyce updated on 01/12/2021
-        numericInput(ns("p_w"), label = "Percentage White:", value = 60),
+        numericInput(ns("p_w"), label = "Percentage European Ancestry:", value = 60),
         #numericInput(ns("p_l"), label = "Percentage Latinx:", value = 18),
-        numericInput(ns("p_b"), label = "Percentage Black:", value = 13),
-        numericInput(ns("p_a"), label = "Percentage Asian:", value = 6),
+        numericInput(ns("p_b"), label = "Percentage African Ancestry:", value = 13),
+        numericInput(ns("p_a"), label = "Percentage Asian Ancestry:", value = 6),
         sliderInput(ns("start_age"), label = "Starting Age of Screening:",
                     min = 0, max = 100, value = 55, step = 1),
-        sliderInput(ns("test_rate"), label = "Probability of Testing for Patients in Age Range:",
-                    min = 0, max = 1, value = 0.2, step = 0.1),  ##Joyce updated on 01/12/2021
+        sliderInput(ns("test_rate"), label = "Proportion of Patients Tested Per Year:",
+                    min = 0, max = 0.3, value = 0.1, step = 0.01),  ##Joyce updated on 01/12/2021
         sliderInput(ns("screen_dur"), label = "Screening Duration:",
                     min = 1, max = 50, value = 10, step = 1), ##Joyce updated on 01/12/2021
         sliderInput(ns("t_horizon"), label = "Time Horizon:",
@@ -53,7 +53,8 @@ precisevalueServer <- function(id) {
             # The user's data, parsed into a data frame. Joyce updated on 01/12/2021
             data <- reactive({
                 p_clo <- p_clo_a*(input$p_a/100) + p_clo_b*(input$p_b/100) + 
-                    p_clo_w*(input$p_w/100)  # population prevalence of clopidogrel variant
+                    p_clo_w*(input$p_w/100) + 
+                    p_clo_w*((100-(input$p_a + input$p_b + input$p_w))/100)  # population prevalence of clopidogrel variant
                 #p_war <- 1                                        # 09/22: we dont need variant prevalence
                 # Population age distribution in probabilities. Notes added on: 01/23/2021
                 ages <- make_age_pattern() 
@@ -264,10 +265,20 @@ precisevalueServer <- function(id) {
                 names(results_list)<-c("All","CEA_results_discounted","CEA_results_undiscounted","ADE_results_clo","ADE_results_war")
                 #return(results_list$All)
                 #n_alerts<-as.data.frame(sum(outcomes$clo_n_alert+outcomes$war_n_alert))
+                ADE_results_clo_noalert <- ADE_results_clo %>% 
+                    select(starts_with("noalert")) %>%
+                    mutate(total = rowSums(.))
+                ADE_results_clo_alert <- ADE_results_clo %>% 
+                    select(starts_with("alert")) %>%
+                    mutate(total = rowSums(.))
                 list(
                     n_alerts = sum(outcomes$clo_n_alert+outcomes$war_n_alert),
+                    n_clo_alerts = sum(outcomes$clo_n_alert),
+                    n_war_alerts = sum(outcomes$war_n_alert),
                     total_cost_no_alert = sum(CEA_results_discounted$no_alert_cost),
                     total_cost_alert = sum(CEA_results_discounted$alert_cost_total),
+                    n_clo_no_alert_ade = ADE_results_clo_noalert$total,
+                    n_clo_alert_ade = ADE_results_clo_alert$total,
                     qaly_no_alert = sum(CEA_results_discounted$no_alert_qaly),
                     qaly_alert = sum(CEA_results_discounted$alert_qaly),
                     table = outcomes
@@ -280,21 +291,10 @@ precisevalueServer <- function(id) {
     )    
 }
 
-# pvOutputServer <- function(id) {
-#     moduleServer(
-#         id,
-#         function(input, output, session) {
-#             innerResult <- precisevalueServer("dflist")
-#             
-#             df_results <- dflist$All
-#             
-#             return(df_results)
-#         }
-#     )
-# }
-
 ui <- dashboardPage(
-    dashboardHeader(title = "PRECISE Value"),
+    skin = "purple",
+    dashboardHeader(title = "PRECISE Value",
+                    titleWidth = 350),
     dashboardSidebar(
         width = 350,
         tags$head(
@@ -323,11 +323,19 @@ ui <- dashboardPage(
                         # ),
                         fluidRow(
                             valueBoxOutput("n_alerts"),
-                            valueBoxOutput("total_cost_no_alert"),
-                            valueBoxOutput("total_cost_alert")
+                            valueBoxOutput("n_clo_alerts"),
+                            valueBoxOutput("n_war_alerts")
                             #box(textOutput("qaly_no_alert")),
                             #box(textOutput("qaly_alert"),)
-                        )
+                        ),
+                        fluidRow(
+                            valueBoxOutput("total_cost_no_alert"),
+                            valueBoxOutput("total_cost_alert")
+                        ) #,
+                        # fluidRow(
+                        #     valueBoxOutput("n_clo_no_alert_ade"),
+                        #     valueBoxOutput("n_clo_alert_ade")
+                        # )
                     )
                     ),
             tabItem(tabName = "table",
@@ -356,25 +364,48 @@ ui <- dashboardPage(
 
 server <- function(input, output, session) {
     data <- precisevalueServer("model_inputs")
-
-    
-    # output$table <- renderDataTable({
-    #     data()$table
-    # })
+   
     output$table <- DT::renderDataTable({
         DT::datatable(data()$table, 
-                      options = list(dom = 't'))
+                      options = list(pageLength = 10))
     })
     output$n_alerts <- renderValueBox({
         valueBox(
-            round(data()$n_alerts, 0), "Number of alerts"
+            round(data()$n_alerts, 0), "Total number of alerts",
+            color = "purple"
+        )
+    })
+    output$n_clo_alerts <- renderValueBox({
+        valueBox(
+            round(data()$n_clo_alerts, 0), "Clopidogrel alerts",
+            color = "purple"
+        )
+    })
+    output$n_war_alerts <- renderValueBox({
+        valueBox(
+            round(data()$n_war_alerts, 0), "Warfarin alerts",
+            color = "purple"
         )
     })
     output$total_cost_no_alert <- renderValueBox({
-        valueBox(paste0("$", round(data()$total_cost_no_alert, 0)), "Total cost without alerts")
+        valueBox(paste0("$", format(round(data()$total_cost_no_alert, 0), big.mark = ",")), 
+                 "Total cost without alerts",
+                 color = "yellow")
     })
     output$total_cost_alert <- renderValueBox({
-        valueBox(paste0("$", round(data()$total_cost_alert, 0)), "Total cost with alerts")
+        valueBox(paste0("$", format(round(data()$total_cost_alert, 0), big.mark = ",")), 
+                 "Total cost with alerts",
+                 color = "yellow")
+    })
+    output$n_clo_no_alert_ade <- renderValueBox({
+        valueBox(round(data()$n_clo_no_alert_ade, 0), 
+                 "Clopidogrel adverse drug events without alerts",
+                 color = "purple")
+    })
+    output$n_clo_alert_ade <- renderValueBox({
+        valueBox(round(data()$n_clo_alert_ade, 0), 
+                 "Clopidogrel adverse drug events with alerts",
+                 color = "purple")
     })
     output$qaly_no_alert <- renderText(paste("QALY without alerts: ", data()$qaly_no_alert))
     output$qaly_alert <- renderText(paste("QALY with alerts: ", data()$qaly_alert))
