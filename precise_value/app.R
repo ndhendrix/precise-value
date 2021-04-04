@@ -353,13 +353,45 @@ ui <- dashboardPage(
                     )
                     )),
             tabItem(tabName = "info",
-                h2(
+                h2("Primer on Ecnomic Evaluation"),
+                
+                h3("Economic evaluation"),
+                h4("Economic evaluation uses a mathematical model to compare two or more alternative courses of action in terms of both their costs and effectiveness. "),
+                
+                h3("Value"),
+                h4("Trade-off between costs and effectiveness (health outcomes) when comparing multiple health interventions"),
+                
+                h3("Measures of effectiveness (health outcomes)"),
+                h4("Quality-adjusted life years (QALYs) that combines (1) quantity of life (survival), and (2)quality of life."),
+                h4("The number of adverse events."),
+                h4("Others possible."),
+                
+                h3("Results of economic evaluation"),
+                h4("Costs"),
+                h5("Total costs of each intervention"),
+                h5("Incremental costs comparing two interventions, i.e. Cost of intervetnion A - Cost of intervention B"),
+                h4("Effectiveness"),
+                h5("Total QALYs of each intervention"),
+                h5("Incremental effectiveness comparing two interventions, i.e. QALYs of intervention A - QALYs of intervention B"),
+                h4("Incremental costs and effectiveness ratio (ICER)=Incremental Costs / Incremental QALYs"),
+                
+                h3("Decision made after economic evaluation"),
+                h4("What is your willingness to pay (WTP) for one unit increase in effectiveness?"),
+                h5("Note that US WTP is between $50,000 and $100,000 per QALY gained"),
+                h4("If your estimated ICER is below your chosen WTP, consider implementing the tested intervention"),
+                h4("If your estimated ICER is above your chosen WTP, consider implementing the alternative intervention")
+                
+                
+                
+
+                            
+                        )
                     
                 )
             )
             )
-    )
-    )
+    
+    
 
 
 server <- function(input, output, session) {
