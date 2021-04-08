@@ -34,10 +34,10 @@ precisevalueUI <- function(id, label = "model inputs") {
                     min = 0, max = 100, value = 55, step = 1),
         sliderInput(ns("test_rate"), label = "Proportion of Patients Tested Per Year:",
                     min = 0, max = 0.3, value = 0.1, step = 0.01),  ##Joyce updated on 01/12/2021
-        sliderInput(ns("screen_dur"), label = "Screening Duration:",
-                    min = 1, max = 50, value = 10, step = 1), ##Joyce updated on 01/12/2021
-        sliderInput(ns("t_horizon"), label = "Time Horizon:",
-                    min = 5, max = 85, value = 20, step = 1),
+        sliderInput(ns("screen_dur"), label = "Number of Years Population is Tested:",
+                    min = 1, max = 20, value = 10, step = 1), ##Joyce updated on 01/12/2021
+        sliderInput(ns("t_horizon"), label = "Pharmacogenomic Alert Duration (Years):",
+                    min = 1, max = 20, value = 10, step = 1),
         sliderInput(ns("startup_cost"), label = "Startup Effort (Hours of IT Build Effort):",
                     min = 5, max = 1000, value = 200, step = 5),
         sliderInput(ns("maint_cost"), label = "Maintenance Cost (Annual % of Startup Effort):",
@@ -284,7 +284,15 @@ precisevalueServer <- function(id) {
                     table = outcomes
                 )
             })
-            
+            # MI and non-fatal MI, bleed and non-fatal bleed
+            # MACE for clopidogrel
+            # Bleeding for warfarin
+            # Cost of alert system vs. costs induced by action
+            # is this a good value - QALYs and ICER (value tab?), button on bottom of summary page
+            # ICER primary data point on value tab, more details below
+            # cost effectiveness as separate tab
+            # clinical data on separate tab
+            # thumbs up or thumbs down for value on summary page
             # Return the reactive that yields the data frame
             return(data)
         }
@@ -329,6 +337,16 @@ ui <- dashboardPage(
                             #box(textOutput("qaly_alert"),)
                         ),
                         fluidRow(
+                            box(title = "Yearly Clopidogrel Alerts",
+                                plotOutput("clo_alerts_by_year")),
+                            box(title = "Yearly Warfarin Alerts",
+                                plotOutput("war_alerts_by_year"))
+                        ),
+                        fluidRow(
+                            valueBoxOutput("alert_decreased_deaths"),
+                            valueBoxOutput("alert_decreased_mi")
+                        ),
+                        fluidRow(
                             valueBoxOutput("total_cost_no_alert"),
                             valueBoxOutput("total_cost_alert")
                         ) #,
@@ -354,7 +372,7 @@ ui <- dashboardPage(
                     )),
             tabItem(tabName = "info",
                     tags$ul(
-                h2("Primer on Ecnomic Evaluation"),
+                h2("Primer on Economic Evaluation"),
                 
                 h3("Economic evaluation"),
                 tags$li("Economic evaluation uses a mathematical model to compare two or more alternative courses of action in terms of both their costs and effectiveness. "),
@@ -399,10 +417,6 @@ ui <- dashboardPage(
 server <- function(input, output, session) {
     data <- precisevalueServer("model_inputs")
    
-    output$table <- DT::renderDataTable({
-        DT::datatable(data()$table, 
-                      options = list(pageLength = 10))
-    })
     output$n_alerts <- renderValueBox({
         valueBox(
             round(data()$n_alerts, 0), "Total number of alerts",
@@ -420,6 +434,30 @@ server <- function(input, output, session) {
             round(data()$n_war_alerts, 0), "Warfarin alerts",
             color = "purple"
         )
+    })
+    output$clo_alerts_by_year <- renderPlot(
+        ggplot(data()$table, aes(x = year, y = round(clo_n_alert, 0))) +
+            geom_bar(stat = "identity") +
+            theme_bw(base_size = 12) +
+            labs(x = "Year", y = "Number of alerts")
+    )
+    output$war_alerts_by_year <- renderPlot(
+        ggplot(data()$table, aes(x = year, y = round(war_n_alert, 0))) +
+            geom_bar(stat = "identity") +
+            theme_bw(base_size = 12) +
+            labs(x = "Year", y = "Number of alerts")
+    )
+    output$alert_decreased_deaths <- renderValueBox({
+        valueBox(round(-(sum(data()$table$clo_alert_CVDeath)+sum(data()$table$clo_alert_NONCVDeath))-
+                           (sum(data()$table$clo_noalert_CVDeath)+sum(data()$table$clo_noalert_NONCVDeath)), 0),
+                 "Deaths prevented by clopidogrel alerts",
+                 color = "yellow")
+    })
+    output$alert_decreased_mi <- renderValueBox({
+        valueBox(round(-(sum(data()$table$clo_alert_NonfatalMI))-
+                     (sum(data()$table$clo_noalert_NonfatalMI)), 0),
+                 "Non-fatal MIs prevented by clopidogrel alerts",
+                 color = "yellow")
     })
     output$total_cost_no_alert <- renderValueBox({
         valueBox(paste0("$", format(round(data()$total_cost_no_alert, 0), big.mark = ",")), 
@@ -443,6 +481,11 @@ server <- function(input, output, session) {
     })
     output$qaly_no_alert <- renderText(paste("QALY without alerts: ", data()$qaly_no_alert))
     output$qaly_alert <- renderText(paste("QALY with alerts: ", data()$qaly_alert))
+    output$table <- DT::renderDataTable({
+        DT::datatable(data()$table, 
+                      options = list(pageLength = 10))
+    })
+
 }
 
 shinyApp(ui, server)
