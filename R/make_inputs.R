@@ -1,8 +1,9 @@
 # Testing pattern on initial base case.
 make_test_pattern <- function(start_age, test_rate, screen_dur, t_horizon) {
+  test_proportion <- test_rate/100
   test_pattern_df <- data.frame(ages = seq(18, 100),
                    y1 = c(rep(0, start_age - 18),
-                          rep(test_rate, screen_dur),
+                          rep(test_proportion, screen_dur),
                           rep(0, 101 - (start_age + screen_dur))))
   
   for(i in 2:t_horizon) {
