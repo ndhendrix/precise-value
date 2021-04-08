@@ -1,8 +1,3 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-
 
 library(shiny)
 library(shinydashboard)
@@ -31,17 +26,17 @@ precisevalueUI <- function(id, label = "model inputs") {
         numericInput(ns("p_b"), label = "Percentage African Ancestry:", value = 13),
         numericInput(ns("p_a"), label = "Percentage Asian Ancestry:", value = 6),
         sliderInput(ns("start_age"), label = "Starting Age of Screening:",
-                    min = 0, max = 100, value = 55, step = 1),
-        sliderInput(ns("test_rate"), label = "Proportion of Patients Tested Per Year:",
-                    min = 0, max = 0.3, value = 0.1, step = 0.01),  ##Joyce updated on 01/12/2021
+                    min = 0, max = 80, value = 55, step = 1),
+        sliderInput(ns("test_rate"), label = "Percentage of Patients Tested Per Year (% of Population):",
+                    min = 0, max = 20, value = 5, step = 1),  ##Joyce updated on 01/12/2021
         sliderInput(ns("screen_dur"), label = "Number of Years Population is Tested:",
-                    min = 1, max = 20, value = 10, step = 1), ##Joyce updated on 01/12/2021
+                    min = 1, max = 25, value = 10, step = 1), ##Joyce updated on 01/12/2021
         sliderInput(ns("t_horizon"), label = "Pharmacogenomic Alert Duration (Years):",
-                    min = 1, max = 20, value = 10, step = 1),
+                    min = 1, max = 25, value = 10, step = 1),
         sliderInput(ns("startup_cost"), label = "Startup Effort (Hours of IT Build Effort):",
-                    min = 5, max = 1000, value = 200, step = 5),
+                    min = 5, max = 500, value = 200, step = 5),
         sliderInput(ns("maint_cost"), label = "Maintenance Cost (Annual % of Startup Effort):",
-                    min = 0, max = 50, value = 20, step = 5)
+                    min = 0, max = 40, value = 20, step = 5)
     )
 }
 
@@ -277,6 +272,8 @@ precisevalueServer <- function(id) {
                     n_war_alerts = sum(outcomes$war_n_alert),
                     total_cost_no_alert = sum(CEA_results_discounted$no_alert_cost),
                     total_cost_alert = sum(CEA_results_discounted$alert_cost_total),
+                    medical_cost_alert = sum(CEA_results_discounted$alert_cost_medical),
+                    admin_cost_alert = sum(CEA_results_discounted$alert_cost_admin),
                     n_clo_no_alert_ade = ADE_results_clo_noalert$total,
                     n_clo_alert_ade = ADE_results_clo_alert$total,
                     qaly_no_alert = sum(CEA_results_discounted$no_alert_qaly),
@@ -287,7 +284,6 @@ precisevalueServer <- function(id) {
             # MI and non-fatal MI, bleed and non-fatal bleed
             # MACE for clopidogrel
             # Bleeding for warfarin
-            # Cost of alert system vs. costs induced by action
             # is this a good value - QALYs and ICER (value tab?), button on bottom of summary page
             # ICER primary data point on value tab, more details below
             # cost effectiveness as separate tab
@@ -314,7 +310,8 @@ ui <- dashboardPage(
         sidebarMenu(
             id = "sbMenu",
             menuItem("Summary", tabName = "summary", icon = icon("dashboard")),
-            menuItem("Year by year numbers", tabName = "table", icon = icon("table")),
+            menuItem("Value details", tabName = "value", icon = icon("table")),
+            menuItem("Adverse drug event details", tabName = "ades", icon = icon("table")),
             menuItem("Background information", tabName = "info", icon = icon("table")),
             menuItem("Data Selection", tabName = "ds", startExpanded = TRUE,
                      precisevalueUI("model_inputs", "Model Inputs")))
@@ -348,7 +345,9 @@ ui <- dashboardPage(
                         ),
                         fluidRow(
                             valueBoxOutput("total_cost_no_alert"),
-                            valueBoxOutput("total_cost_alert")
+                            #valueBoxOutput("total_cost_alert"),
+                            valueBoxOutput("medical_cost_alert"),
+                            valueBoxOutput("admin_cost_alert")
                         ) #,
                         # fluidRow(
                         #     valueBoxOutput("n_clo_no_alert_ade"),
@@ -356,7 +355,11 @@ ui <- dashboardPage(
                         # )
                     )
                     ),
-            tabItem(tabName = "table",
+            tabItem(tabName = "value",
+                    h2(
+                        
+                    )),
+            tabItem(tabName = "ades",
                     h2(
                         # sidebarPanel(
                         #     precisevalueUI("model_inputs", "Model Inputs")
@@ -461,13 +464,23 @@ server <- function(input, output, session) {
     })
     output$total_cost_no_alert <- renderValueBox({
         valueBox(paste0("$", format(round(data()$total_cost_no_alert, 0), big.mark = ",")), 
-                 "Total cost without alerts",
-                 color = "yellow")
+                 "Cost of medical therapy without alerts",
+                 color = "purple")
     })
     output$total_cost_alert <- renderValueBox({
         valueBox(paste0("$", format(round(data()$total_cost_alert, 0), big.mark = ",")), 
                  "Total cost with alerts",
-                 color = "yellow")
+                 color = "purple")
+    })
+    output$medical_cost_alert <- renderValueBox({
+        valueBox(paste0("$", format(round(data()$medical_cost_alert, 0), big.mark = ",")), 
+                 "Cost of medical therapy with alerts",
+                 color = "purple")
+    })
+    output$admin_cost_alert <- renderValueBox({
+        valueBox(paste0("$", format(round(data()$admin_cost_alert, 0), big.mark = ",")), 
+                 "Build and maintenance cost of alerts",
+                 color = "purple")
     })
     output$n_clo_no_alert_ade <- renderValueBox({
         valueBox(round(data()$n_clo_no_alert_ade, 0), 
