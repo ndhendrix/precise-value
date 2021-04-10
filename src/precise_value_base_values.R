@@ -71,6 +71,7 @@ NONCVDeath_change_clo<--0.0029 #PGx: risk reduction
 # ADE of PGx-CDS for warfarin (updated: 11/21/2020)
 Bleeding_change_war<--0.007 #PGx: risk reduction
 Clot_change_war<--0.002 #PGx: risk reduction
+Death_change_war<--0.004 #PGx: risk reduction. Joyce added 04/10/2021.
 
 # time horizon (years)
 t_horizon <- 20
