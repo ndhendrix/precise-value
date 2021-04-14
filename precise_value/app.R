@@ -171,7 +171,9 @@ precisevalueServer <- function(id) {
                 #Clots
                 war_outcomes$war_noalert_clot <- war_outcomes$war_n_alert * p_change_no_alert * Clot_change_war
                 war_outcomes$war_alert_clot <- war_outcomes$war_n_alert * p_change_alert * Clot_change_war
-                
+                #Death:   #Joyce updated: 04/10/2021.
+                war_outcomes$war_noalert_death <- war_outcomes$war_n_alert * p_change_no_alert * Death_change_war
+                war_outcomes$war_alert_death <- war_outcomes$war_n_alert * p_change_alert * Death_change_war
                 
                 # STEP 3: Combine results from 2 drugs together
                 outcomes <- merge(clo_outcomes, war_outcomes, by = "year")
@@ -184,11 +186,11 @@ precisevalueServer <- function(id) {
                 # (1) Select relevant columns. 
                 # The number of alerts: 2 for clopidogrel, 27 for warfarin. 
                 # QALYs: 3, 4 for clopidogrel, 28, 29 for warfarin.
-                # Costs: 5, 6 for clopidogrel, 30, 31 for warfarin. & 36 for admin alert costs. 
-                CEAoutcomes_nodiscount <- outcomes[,c(1,2,27,3:6,28:31,36)] #select CEA outcomes (costs and QALYs)
-                CEAoutcomes_discount   <- outcomes[,c(1,2,27,3:6,28:31,36)] #select CEA outcomes (costs and QALYs)
+                # Costs: 5, 6 for clopidogrel, 30, 31 for warfarin. & 38 for admin alert costs. 
+                CEAoutcomes_nodiscount <- outcomes[,c(1,2,27,3:6,28:31,38)] #select CEA outcomes (costs and QALYs)
+                CEAoutcomes_discount   <- outcomes[,c(1,2,27,3:6,28:31,38)] #select CEA outcomes (costs and QALYs)
                 CLO_ADE<-outcomes[,c(1,2,7:26)]          
-                WAR_ADE<-outcomes[,c(1,27,32:35)]  
+                WAR_ADE<-outcomes[,c(1,27,32:37)]  
                 
                 # (2) Discount: CEAoutcomes_discount
                 for(i in 4:12) {
@@ -241,12 +243,14 @@ precisevalueServer <- function(id) {
                 ADE_results_war<-data.frame(noalert_Bleeding=double(),
                                             alert_Bleeding=double(),
                                             noalert_Clot=double(),
-                                            alert_Clot=double())
+                                            alert_Clot=double(),
+                                            noalert_Death=double(),
+                                            alert_Death=double())
                 for (i in seq(1:20)){
                     a<-i+2
                     ADE_results_clo[1,i]<-sum(CLO_ADE[,a])}
                 
-                for (i in seq(1:4)){
+                for (i in seq(1:6)){
                     a<-i+2
                     ADE_results_war[1,i]<-sum(WAR_ADE[,a])
                 }

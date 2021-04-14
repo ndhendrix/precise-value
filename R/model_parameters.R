@@ -43,6 +43,7 @@ NONCVDeath_change_clo <- -0.0008/0.28 #PGx: risk reduction
 # payoffs: ADEs of PGx. Identified from literature review. - Warfarin 
 Bleeding_change_war <- -0.007 #PGx: risk reduction
 Clot_change_war <- -0.002 #PGx: risk reduction
+Death_change_war<--0.004 #PGx: risk reduction. Joyce added 04/10/2021
 
 ##Risk of getting clopidogrel for ACS. Joyce updated on 01/12/2021
 p_new_rx_clo_18_24 <- 0.000003
