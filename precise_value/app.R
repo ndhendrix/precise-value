@@ -294,6 +294,13 @@ precisevalueServer <- function(id) {
             # clinical data on separate tab
             # thumbs up or thumbs down for value on summary page
             # Return the reactive that yields the data frame
+            # Project tab describing project
+            # Interpretation - table (separate page or part of project page?)
+            # increase font size of text in value boxes
+            # add annual alerts to y-axis label
+            # "Welcome to PRECISE Value" at top of summary page
+            # Include good value vs. not on summary page
+            
             return(data)
         }
     )    
@@ -344,7 +351,10 @@ ui <- dashboardPage(
                                 plotOutput("war_alerts_by_year"))
                         ),
                         fluidRow(
-                            valueBoxOutput("alert_decreased_deaths"),
+                            valueBoxOutput("alert_decreased_clo_deaths"),
+                            valueBoxOutput("alert_decreased_war_deaths")
+                        ),
+                        fluidRow(
                             valueBoxOutput("alert_decreased_mi")
                         ),
                         fluidRow(
@@ -454,7 +464,7 @@ server <- function(input, output, session) {
             theme_bw(base_size = 12) +
             labs(x = "Year", y = "Number of alerts")
     )
-    output$alert_decreased_deaths <- renderValueBox({
+    output$alert_decreased_clo_deaths <- renderValueBox({
         valueBox(round(-(sum(data()$table$clo_alert_CVDeath)+sum(data()$table$clo_alert_NONCVDeath))-
                            (sum(data()$table$clo_noalert_CVDeath)+sum(data()$table$clo_noalert_NONCVDeath)), 0),
                  "Deaths prevented by clopidogrel alerts",
@@ -464,6 +474,12 @@ server <- function(input, output, session) {
         valueBox(round(-(sum(data()$table$clo_alert_NonfatalMI))-
                      (sum(data()$table$clo_noalert_NonfatalMI)), 0),
                  "Non-fatal MIs prevented by clopidogrel alerts",
+                 color = "yellow")
+    })
+    output$alert_decreased_war_deaths <- renderValueBox({
+        valueBox(round(-(sum(data()$table$war_alert_death))-
+                           (sum(data()$table$war_noalert_death)), 0),
+                 "Deaths prevented by warfarin alerts",
                  color = "yellow")
     })
     output$total_cost_no_alert <- renderValueBox({
