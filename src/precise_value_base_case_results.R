@@ -108,64 +108,105 @@ inc_adm_cost_discounted/inc_qaly_discounted
 
 
 #####ADE clopidogrel#####
+colnames(ADE_result_clo_report)<-c("Intervention","Non-fatal MI","stent thrombosis","Nonfatal intracranial",
+                                   "Nonfatal extracranial","CABG bleeding","minor bleeding",
+                                   "CABG revascularization","PCI revascularization","CV death","non CV death")
+ADE_result_clo_report[,1]<-c("No Alerts","Alerts","Incremental")
+
 #(1) Non-fatal MI
-round(ADE_results_clo[,1],3)
-round(ADE_results_clo[,2],3)
-round(ADE_results_clo[,2],3)-round(ADE_results_clo[,1],3)
+ADE_result_clo_report[1,2]<-round(ADE_results_clo[,1],3)
+ADE_result_clo_report[2,2]<-round(ADE_results_clo[,2],3)
+ADE_result_clo_report[3,2]<-round(ADE_results_clo[,2],3)-round(ADE_results_clo[,1],3)
 
 #(2) stent thrombosis
-round(ADE_results_clo[,3],3)
-round(ADE_results_clo[,4],3)
-round(ADE_results_clo[,4],3)-round(ADE_results_clo[,3],3)
+ADE_result_clo_report[1,3]<-round(ADE_results_clo[,3],3)
+ADE_result_clo_report[2,3]<-round(ADE_results_clo[,4],3)
+ADE_result_clo_report[3,3]<-round(ADE_results_clo[,4],3)-round(ADE_results_clo[,3],3)
 
 #(3) Nonfatal intracranial
-round(ADE_results_clo[,5],5)
-round(ADE_results_clo[,6],5)
-round(ADE_results_clo[,6],5)-round(ADE_results_clo[,5],5)
+ADE_result_clo_report[1,4]<-round(ADE_results_clo[,5],3)
+ADE_result_clo_report[2,4]<-round(ADE_results_clo[,6],3)
+ADE_result_clo_report[3,4]<-round(ADE_results_clo[,6],3)-round(ADE_results_clo[,5],3)
 
 #(4) Nonfatal extracranial
-round(ADE_results_clo[,7],3)
-round(ADE_results_clo[,8],3)
-round(ADE_results_clo[,8],3)-round(ADE_results_clo[,7],3)
+ADE_result_clo_report[1,5]<-round(ADE_results_clo[,7],3)
+ADE_result_clo_report[2,5]<-round(ADE_results_clo[,8],3)
+ADE_result_clo_report[3,5]<-round(ADE_results_clo[,8],3)-round(ADE_results_clo[,7],3)
 
 #(5) CABG bleeding
-round(ADE_results_clo[,9],5)
-round(ADE_results_clo[,10],5)
-round(ADE_results_clo[,10],5)-round(ADE_results_clo[,9],5)
+ADE_result_clo_report[1,6]<-round(ADE_results_clo[,9],3)
+ADE_result_clo_report[2,6]<-round(ADE_results_clo[,10],3)
+ADE_result_clo_report[3,6]<-round(ADE_results_clo[,10],3)-round(ADE_results_clo[,9],3)
 
 #(6) minor bleeding
-round(ADE_results_clo[,11],3)
-round(ADE_results_clo[,12],3)
-round(ADE_results_clo[,12],3)-round(ADE_results_clo[,11],3)
+ADE_result_clo_report[1,7]<-round(ADE_results_clo[,11],3)
+ADE_result_clo_report[2,7]<-round(ADE_results_clo[,12],3)
+ADE_result_clo_report[3,7]<-round(ADE_results_clo[,12],3)-round(ADE_results_clo[,11],3)
 
 #(7) CABG revascularization
-round(ADE_results_clo[,13],3)
-round(ADE_results_clo[,14],3)
-round(ADE_results_clo[,14],3)-round(ADE_results_clo[,13],3)
+ADE_result_clo_report[1,8]<-round(ADE_results_clo[,13],3)
+ADE_result_clo_report[2,8]<-round(ADE_results_clo[,14],3)
+ADE_result_clo_report[3,8]<-round(ADE_results_clo[,14],3)-round(ADE_results_clo[,13],3)
 
 #(8) PCI revascularization
-round(ADE_results_clo[,15],3)
-round(ADE_results_clo[,16],3)
-round(ADE_results_clo[,16],3)-round(ADE_results_clo[,15],3)
+ADE_result_clo_report[1,9]<-round(ADE_results_clo[,15],3)
+ADE_result_clo_report[2,9]<-round(ADE_results_clo[,16],3)
+ADE_result_clo_report[3,9]<-round(ADE_results_clo[,16],3)-round(ADE_results_clo[,15],3)
 
 #(9) CV death
-round(ADE_results_clo[,17],3)
-round(ADE_results_clo[,18],3)
-round(ADE_results_clo[,18],3)-round(ADE_results_clo[,17],3)
+ADE_result_clo_report[1,10]<-round(ADE_results_clo[,17],3)
+ADE_result_clo_report[2,10]<-round(ADE_results_clo[,18],3)
+ADE_result_clo_report[3,10]<-round(ADE_results_clo[,18],3)-round(ADE_results_clo[,17],3)
 
 #(10) non CV death
-round(ADE_results_clo[,19],3)
-round(ADE_results_clo[,20],3)
-round(ADE_results_clo[,20],3)-round(ADE_results_clo[,19],3)
+ADE_result_clo_report[1,11]<-round(ADE_results_clo[,19],3)
+ADE_result_clo_report[2,11]<-round(ADE_results_clo[,20],3)
+ADE_result_clo_report[3,11]<-round(ADE_results_clo[,20],3)-round(ADE_results_clo[,19],3)
+
+View(ADE_result_clo_report)
+
+#Aggregate results - Joyce added on 04/10/2021
+final_output_ADE_Clo<-data.frame(matrix(nrow=3, ncol=4))
+colnames(final_output_ADE_Clo)<-c("Intervention","Primary MACE outcome","Secondary MACE outcome", "Bleeding")
+final_output_ADE_Clo[,1]<-c("PGx-CDS alerts","No PGx-CDS alerts","Incremental")
+
+#a. MACE outcome - narrower definition: MI + CV death
+final_output_ADE_Clo[1,2]<-ADE_result_clo_report[2,2]+ADE_result_clo_report[2,10]
+final_output_ADE_Clo[2,2]<-ADE_result_clo_report[1,2]+ADE_result_clo_report[1,10]
+final_output_ADE_Clo[3,2]<-final_output_ADE_Clo[1,2]-final_output_ADE_Clo[2,2]
+
+#b. MACE outcome - broader definition: MI + CV death + Revascularization + stent thrombosis
+final_output_ADE_Clo[1,3]<-ADE_result_clo_report[2,2]+ADE_result_clo_report[2,10]+ADE_result_clo_report[2,8]+ADE_result_clo_report[2,9]+ADE_result_clo_report[2,3]
+final_output_ADE_Clo[2,3]<-ADE_result_clo_report[1,2]+ADE_result_clo_report[1,10]+ADE_result_clo_report[1,8]+ADE_result_clo_report[1,9]+ADE_result_clo_report[1,3]
+final_output_ADE_Clo[3,3]<-final_output_ADE_Clo[1,3]-final_output_ADE_Clo[2,3]
+
+#c. bleeding: non-fatal intracrainial, non-fatal extracranial, CABG related bleeding. Note: no minior bleeding. 
+final_output_ADE_Clo[1,4]<-ADE_result_clo_report[2,4]+ADE_result_clo_report[2,5]+ADE_result_clo_report[2,6]
+final_output_ADE_Clo[2,4]<-ADE_result_clo_report[1,4]+ADE_result_clo_report[1,5]+ADE_result_clo_report[1,6]
+final_output_ADE_Clo[3,4]<-final_output_ADE_Clo[1,4]-final_output_ADE_Clo[2,4]
+
+View(final_output_ADE_Clo)
 
 #####ADE warfarin#####
+
+ADE_result_war_report<-data.frame(matrix(nrow=3,ncol=4))
+colnames(ADE_result_war_report)<-c("Intervention","Bleeding","Clotting", "Death") #"Death" state was added. 04/10/2021
+ADE_result_war_report[,1]<-c("No Alerts","Alerts","Incremental")
+
 #(1) Bleeding
-round(ADE_results_war[,1],3)
-round(ADE_results_war[,2],3)
-round(ADE_results_war[,2],3)-round(ADE_results_war[,1],3)
+ADE_result_war_report[1,2]<-round(ADE_results_war[,1],3)
+ADE_result_war_report[2,2]<-round(ADE_results_war[,2],3)
+ADE_result_war_report[3,2]<-round(ADE_results_war[,2],3)-round(ADE_results_war[,1],3)
 
 #(2) clot
-round(ADE_results_war[,3],3)
-round(ADE_results_war[,4],3)
-round(ADE_results_war[,4],3)-round(ADE_results_war[,3],3)
+ADE_result_war_report[1,3]<-round(ADE_results_war[,3],3)
+ADE_result_war_report[2,3]<-round(ADE_results_war[,4],3)
+ADE_result_war_report[3,3]<-round(ADE_results_war[,4],3)-round(ADE_results_war[,3],3)
+
+#(3) death: Joyce added on 04/10/2021
+ADE_result_war_report[1,4]<-round(ADE_results_war[,5],3)
+ADE_result_war_report[2,4]<-round(ADE_results_war[,6],3)
+ADE_result_war_report[3,4]<-round(ADE_results_war[,6],3)-round(ADE_results_war[,5],3)
+
+View(ADE_result_war_report)
 
