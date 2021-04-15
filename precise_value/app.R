@@ -285,22 +285,8 @@ precisevalueServer <- function(id) {
                     table = outcomes
                 )
             })
-            # MI and non-fatal MI, bleed and non-fatal bleed
-            # MACE for clopidogrel
-            # Bleeding for warfarin
-            # is this a good value - QALYs and ICER (value tab?), button on bottom of summary page
-            # ICER primary data point on value tab, more details below
-            # cost effectiveness as separate tab
-            # clinical data on separate tab
-            # thumbs up or thumbs down for value on summary page
+
             # Return the reactive that yields the data frame
-            # Project tab describing project
-            # Interpretation - table (separate page or part of project page?)
-            # increase font size of text in value boxes
-            # add annual alerts to y-axis label
-            # "Welcome to PRECISE Value" at top of summary page
-            # Include good value vs. not on summary page
-            
             return(data)
         }
     )    
