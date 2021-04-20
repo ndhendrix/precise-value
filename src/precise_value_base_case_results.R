@@ -165,20 +165,39 @@ ADE_result_clo_report[3,11]<-round(ADE_results_clo[,20],3)-round(ADE_results_clo
 
 View(ADE_result_clo_report)
 
-#Aggregate results - Joyce added on 04/10/2021
+
+# #Aggregate results - Joyce added on 04/10/2021
+# final_output_ADE_Clo<-data.frame(matrix(nrow=3, ncol=4))
+# colnames(final_output_ADE_Clo)<-c("Intervention","Primary MACE outcome","Secondary MACE outcome", "Bleeding")
+# final_output_ADE_Clo[,1]<-c("PGx-CDS alerts","No PGx-CDS alerts","Incremental")
+
+# #a. MACE outcome - narrower definition: MI + CV death
+# final_output_ADE_Clo[1,2]<-ADE_result_clo_report[2,2]+ADE_result_clo_report[2,10]
+# final_output_ADE_Clo[2,2]<-ADE_result_clo_report[1,2]+ADE_result_clo_report[1,10]
+# final_output_ADE_Clo[3,2]<-final_output_ADE_Clo[1,2]-final_output_ADE_Clo[2,2]
+# 
+# #b. MACE outcome - broader definition: MI + CV death + Revascularization + stent thrombosis
+# final_output_ADE_Clo[1,3]<-ADE_result_clo_report[2,2]+ADE_result_clo_report[2,10]+ADE_result_clo_report[2,8]+ADE_result_clo_report[2,9]+ADE_result_clo_report[2,3]
+# final_output_ADE_Clo[2,3]<-ADE_result_clo_report[1,2]+ADE_result_clo_report[1,10]+ADE_result_clo_report[1,8]+ADE_result_clo_report[1,9]+ADE_result_clo_report[1,3]
+# final_output_ADE_Clo[3,3]<-final_output_ADE_Clo[1,3]-final_output_ADE_Clo[2,3]
+
+
+# Updated aggregate results - Joyce added on 04/20/2021
 final_output_ADE_Clo<-data.frame(matrix(nrow=3, ncol=4))
-colnames(final_output_ADE_Clo)<-c("Intervention","Primary MACE outcome","Secondary MACE outcome", "Bleeding")
+colnames(final_output_ADE_Clo)<-c("Intervention","Clinical events","CVDeath", "Drug events")
 final_output_ADE_Clo[,1]<-c("PGx-CDS alerts","No PGx-CDS alerts","Incremental")
 
-#a. MACE outcome - narrower definition: MI + CV death
-final_output_ADE_Clo[1,2]<-ADE_result_clo_report[2,2]+ADE_result_clo_report[2,10]
-final_output_ADE_Clo[2,2]<-ADE_result_clo_report[1,2]+ADE_result_clo_report[1,10]
+
+#a. ACS events
+final_output_ADE_Clo[1,2]<-ADE_result_clo_report[2,2]+ADE_result_clo_report[2,3]+ADE_result_clo_report[2,8]+ADE_result_clo_report[2,9]
+final_output_ADE_Clo[2,2]<-ADE_result_clo_report[1,2]+ADE_result_clo_report[1,3]+ADE_result_clo_report[1,8]+ADE_result_clo_report[1,9]
 final_output_ADE_Clo[3,2]<-final_output_ADE_Clo[1,2]-final_output_ADE_Clo[2,2]
 
-#b. MACE outcome - broader definition: MI + CV death + Revascularization + stent thrombosis
-final_output_ADE_Clo[1,3]<-ADE_result_clo_report[2,2]+ADE_result_clo_report[2,10]+ADE_result_clo_report[2,8]+ADE_result_clo_report[2,9]+ADE_result_clo_report[2,3]
-final_output_ADE_Clo[2,3]<-ADE_result_clo_report[1,2]+ADE_result_clo_report[1,10]+ADE_result_clo_report[1,8]+ADE_result_clo_report[1,9]+ADE_result_clo_report[1,3]
+#b. CVDeath
+final_output_ADE_Clo[1,3]<-ADE_result_clo_report[2,10]
+final_output_ADE_Clo[2,3]<-ADE_result_clo_report[1,10]
 final_output_ADE_Clo[3,3]<-final_output_ADE_Clo[1,3]-final_output_ADE_Clo[2,3]
+
 
 #c. bleeding: non-fatal intracrainial, non-fatal extracranial, CABG related bleeding. Note: no minior bleeding. 
 final_output_ADE_Clo[1,4]<-ADE_result_clo_report[2,4]+ADE_result_clo_report[2,5]+ADE_result_clo_report[2,6]
@@ -207,3 +226,8 @@ ADE_result_war_report[2,4]<-round(ADE_results_war[,6],3)
 ADE_result_war_report[3,4]<-round(ADE_results_war[,6],3)-round(ADE_results_war[,5],3)
 
 View(ADE_result_war_report)
+ADE_result_war_report[1,2] + ADE_result_war_report[1,3]
+ADE_result_war_report[2,2] + ADE_result_war_report[2,3]
+ADE_result_war_report[2,2] + ADE_result_war_report[2,3]-(ADE_result_war_report[1,2] + ADE_result_war_report[1,3])
+
+ADE_result_war_report[3,4] + ADE_result_war_report[1,4]
