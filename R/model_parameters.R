@@ -36,7 +36,7 @@ NonFatalExtracranial_change_clo <- 0.00032/0.28 #PGx: risk increase
 CABGBleeding_change_clo <- 0.0001/0.28 #PGx: risk increase
 MinorBleeding_change_clo <- 0.0011/0.28  #PGx: risk increase
 CABGRevascularization_change_clo <- -0.0006/0.28 #PGx: risk reduction
-PCIRevascularization_change_clo <- -0049/0.28 #PGx: risk reduction
+PCIRevascularization_change_clo <- -0.049/0.28 #PGx: risk reduction
 CVDeath_change_clo <- -0.0065/0.28 #PGx: risk reduction
 NONCVDeath_change_clo <- -0.0008/0.28 #PGx: risk reduction
 
