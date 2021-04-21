@@ -28,7 +28,7 @@ precisevalueUI <- function(id, label = "model inputs") {
         sliderInput(ns("start_age"), label = "Starting Age of Screening:",
                     min = 0, max = 80, value = 55, step = 1),
         sliderInput(ns("test_rate"), label = "Percentage of Patients Tested Per Year (% of Population):",
-                    min = 0, max = 20, value = 5, step = 1),  ##Joyce updated on 01/12/2021
+                    min = 0, max = 100, value = 5, step = 1),  ##Joyce updated on 01/12/2021
         sliderInput(ns("screen_dur"), label = "Number of Years Population is Tested:",
                     min = 1, max = 25, value = 10, step = 1), ##Joyce updated on 01/12/2021
         sliderInput(ns("t_horizon"), label = "Pharmacogenomic Alert Duration (Years):",
@@ -278,6 +278,26 @@ precisevalueServer <- function(id) {
                     total_cost_alert = sum(CEA_results_discounted$alert_cost_total),
                     medical_cost_alert = sum(CEA_results_discounted$alert_cost_medical),
                     admin_cost_alert = sum(CEA_results_discounted$alert_cost_admin),
+                    clo_non_fatal_mi_no_alert = sum(ADE_results_clo$noalert_NonFatalMI),
+                    clo_non_fatal_mi_alert = sum(ADE_results_clo$alert_NonFatalMI),
+                    clo_stent_thrombosis_no_alert = sum(ADE_results_clo$noalert_StentThrombosis),
+                    clo_stent_thrombosis_alert = sum(ADE_results_clo$alert_StentThrombosis),
+                    clo_cabg_revasc_no_alert = sum(ADE_results_clo$noalert_CABGRevascularization),
+                    clo_cabg_revasc_alert = sum(ADE_results_clo$lert_CABGRevascularization),
+                    clo_pci_revasc_no_alert = sum(ADE_results_clo$noalert_PCIRevascularization),
+                    clo_pci_revasc_alert = sum(ADE_results_clo$alert_PCIRevascularization),
+                    clo_non_fatal_ic_bleed_no_alert = sum(ADE_results_clo$noalert_NonFatalIntracranial),
+                    clo_non_fatal_ic_bleed_alert = sum(ADE_results_clo$alert_NonFatalIntracranial),
+                    clo_non_fatal_ec_bleed_no_alert = sum(ADE_results_clo$noalert_NonFatalExtracranial),
+                    clo_non_fatal_ec_bleed_alert = sum(ADE_results_clo$alert_NonFatalExtracranial),
+                    clo_cabg_bleed_no_alert = sum(ADE_results_clo$noalert_CABGBleeding),
+                    clo_cabg_bleed_alert = sum(ADE_results_clo$alert_CABGBleeding),
+                    war_bleed_no_alert = sum(ADE_results_war$noalert_Bleeding),
+                    war_bleed_alert = sum(ADE_results_war$alert_Bleeding),
+                    war_clot_no_alert = sum(ADE_results_war$noalert_Clot),
+                    war_clot_alert = sum(ADE_results_war$alert_Clot),
+                    war_death_no_alert = sum(ADE_results_war$noalert_Death),
+                    war_death_alert = sum(ADE_results_war$alert_Death),
                     n_clo_no_alert_ade = ADE_results_clo_noalert$total,
                     n_clo_alert_ade = ADE_results_clo_alert$total,
                     qaly_no_alert = sum(CEA_results_discounted$no_alert_qaly),
@@ -338,10 +358,14 @@ ui <- dashboardPage(
                         ),
                         fluidRow(
                             valueBoxOutput("alert_decreased_clo_deaths"),
-                            valueBoxOutput("alert_decreased_war_deaths")
+                            valueBoxOutput("alert_decreased_clo_acs_events"),
+                            valueBoxOutput("alert_clo_bleeding_events")
+                            
                         ),
                         fluidRow(
-                            valueBoxOutput("alert_decreased_mi")
+                            valueBoxOutput("alert_decreased_war_deaths"),
+                            valueBoxOutput("alert_decreased_war_clots"),
+                            valueBoxOutput("alert_war_bleeding_events")
                         ),
                         fluidRow(
                             valueBoxOutput("total_cost_no_alert"),
@@ -403,11 +427,6 @@ ui <- dashboardPage(
                 h4("If your estimated ICER is below your chosen WTP, consider implementing the tested intervention"),
                 h4("If your estimated ICER is above your chosen WTP, consider implementing the alternative intervention")
                     )
-                
-                
-                
-
-                            
                         )
                     
                 )
@@ -451,11 +470,53 @@ server <- function(input, output, session) {
             labs(x = "Year", y = "Number of alerts")
     )
     output$alert_decreased_clo_deaths <- renderValueBox({
-        valueBox(round(-(sum(data()$table$clo_alert_CVDeath)+sum(data()$table$clo_alert_NONCVDeath))-
-                           (sum(data()$table$clo_noalert_CVDeath)+sum(data()$table$clo_noalert_NONCVDeath)), 0),
+        valueBox(round(-(sum(data()$table$clo_alert_CVDeath))-
+                           (sum(data()$table$clo_noalert_CVDeath)), 0),
                  "Deaths prevented by clopidogrel alerts",
                  color = "yellow")
     })
+    output$alert_decreased_clo_acs_events <- renderValueBox({
+        valueBox(-round((data()$clo_non_fatal_mi_alert+data()$clo_stent_thrombosis_alert+
+                           data()$clo_cabg_revasc_alert+data()$clo_pci_revasc_alert)-
+                           (data()$clo_non_fatal_mi_no_alert+data()$clo_stent_thrombosis_no_alert+
+                                data()$clo_cabg_revasc_no_alert+data()$clo_pci_revasc_no_alert), 0),
+                 "ACS events prevented by clopidogrel alerts",
+                 color = "yellow"
+        )
+    })
+    output$alert_clo_bleeding_events <- renderValueBox({
+        valueBox(round((data()$non_fatal_ic_bleed_alert+data()$clo_non_fatal_ec_bleed_alert+
+                             data()$clo_cabg_bleed_alert)-
+                            (data()$clo_non_fatal_ic_bleed_no_alert+data()$clo_non_fatal_ec_bleed_no_alert+
+                                 data()$clo_cabg_bleed_no_alert), 0),
+                 "Change in bleeding events due to clopidogrel alerts",
+                 color = "yellow"
+        )
+    })
+    output$alert_decreased_war_deaths <- renderValueBox({
+        valueBox(-round((data()$war_death_alert)-(data()$war_death_no_alert), 0),
+                 "Decreased deaths due to warfarin alerts",
+                 color = "yellow"
+        )
+    })
+    output$alert_decreased_war_clots <- renderValueBox({
+        valueBox(-round((data()$war_clot_alert)-(data()$war_clot_no_alert), 0),
+                 "Decreased clots due to warfarin alerts",
+                 color = "yellow"
+        )
+    })
+    output$alert_war_bleeding_events <- renderValueBox({
+        valueBox(round((data()$war_bleed_alert)-(data()$war_bleed_no_alert), 0),
+                 "Change in bleeding events due to warfarin alerts",
+                 color = "yellow"
+        )
+    })
+    # war_bleed_no_alert = sum(ADE_results_war$noalert_Bleeding),
+    # war_bleed_alert = sum(ADE_results_war$alert_Bleeding),
+    # war_clot_no_alert = sum(ADE_results_war$noalert_Clot),
+    # war_clot_alert = sum(ADE_results_war$alert_Clot),
+    # war_death_no_alert = sum(ADE_results_war$noalert_Death),
+    # war_death_alert = sum(ADE_results_war$alert_Death),
     output$alert_decreased_mi <- renderValueBox({
         valueBox(round(-(sum(data()$table$clo_alert_NonfatalMI))-
                      (sum(data()$table$clo_noalert_NonfatalMI)), 0),
