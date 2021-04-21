@@ -480,15 +480,15 @@ server <- function(input, output, session) {
                            data()$clo_cabg_revasc_alert+data()$clo_pci_revasc_alert)-
                            (data()$clo_non_fatal_mi_no_alert+data()$clo_stent_thrombosis_no_alert+
                                 data()$clo_cabg_revasc_no_alert+data()$clo_pci_revasc_no_alert), 0),
-                 "ACS events prevented by clopidogrel alerts",
+                 "Clinical events prevented by clopidogrel alerts",
                  color = "yellow"
         )
     })
     output$alert_clo_bleeding_events <- renderValueBox({
-        valueBox(round((data()$non_fatal_ic_bleed_alert+data()$clo_non_fatal_ec_bleed_alert+
-                             data()$clo_cabg_bleed_alert)-
-                            (data()$clo_non_fatal_ic_bleed_no_alert+data()$clo_non_fatal_ec_bleed_no_alert+
-                                 data()$clo_cabg_bleed_no_alert), 0),
+        valueBox(round((data()$clo_non_fatal_ic_bleed_alert+data()$clo_non_fatal_ec_bleed_alert+
+                            data()$clo_cabg_bleed_alert)-
+                           (data()$clo_non_fatal_ic_bleed_no_alert+data()$clo_non_fatal_ec_bleed_no_alert+
+                                data()$clo_cabg_bleed_no_alert), 0),
                  "Change in bleeding events due to clopidogrel alerts",
                  color = "yellow"
         )
@@ -501,7 +501,7 @@ server <- function(input, output, session) {
     })
     output$alert_decreased_war_clots <- renderValueBox({
         valueBox(-round((data()$war_clot_alert)-(data()$war_clot_no_alert), 0),
-                 "Decreased clots due to warfarin alerts",
+                 "Clinical events (clots) prevented due to warfarin alerts",
                  color = "yellow"
         )
     })
