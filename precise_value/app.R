@@ -368,9 +368,9 @@ ui <- dashboardPage(
                             valueBoxOutput("alert_war_bleeding_events")
                         ),
                         fluidRow(
-                            valueBoxOutput("total_cost_no_alert"),
+                            #valueBoxOutput("total_cost_no_alert"),
                             #valueBoxOutput("total_cost_alert"),
-                            valueBoxOutput("medical_cost_alert"),
+                            valueBoxOutput("change_medical_cost"),
                             valueBoxOutput("admin_cost_alert")
                         ) #,
                         # fluidRow(
@@ -511,24 +511,18 @@ server <- function(input, output, session) {
                  color = "yellow"
         )
     })
-    # war_bleed_no_alert = sum(ADE_results_war$noalert_Bleeding),
-    # war_bleed_alert = sum(ADE_results_war$alert_Bleeding),
-    # war_clot_no_alert = sum(ADE_results_war$noalert_Clot),
-    # war_clot_alert = sum(ADE_results_war$alert_Clot),
-    # war_death_no_alert = sum(ADE_results_war$noalert_Death),
-    # war_death_alert = sum(ADE_results_war$alert_Death),
     output$alert_decreased_mi <- renderValueBox({
         valueBox(round(-(sum(data()$table$clo_alert_NonfatalMI))-
                      (sum(data()$table$clo_noalert_NonfatalMI)), 0),
                  "Non-fatal MIs prevented by clopidogrel alerts",
                  color = "yellow")
     })
-    output$alert_decreased_war_deaths <- renderValueBox({
-        valueBox(round(-(sum(data()$table$war_alert_death))-
-                           (sum(data()$table$war_noalert_death)), 0),
-                 "Deaths prevented by warfarin alerts",
-                 color = "yellow")
-    })
+    # output$alert_decreased_war_deaths <- renderValueBox({
+    #     valueBox(round(-(sum(data()$table$war_alert_death))-
+    #                        (sum(data()$table$war_noalert_death)), 0),
+    #              "Deaths prevented by warfarin alerts",
+    #              color = "yellow")
+    # })
     output$total_cost_no_alert <- renderValueBox({
         valueBox(paste0("$", format(round(data()$total_cost_no_alert, 0), big.mark = ",")), 
                  "Cost of medical therapy without alerts",
@@ -537,6 +531,12 @@ server <- function(input, output, session) {
     output$total_cost_alert <- renderValueBox({
         valueBox(paste0("$", format(round(data()$total_cost_alert, 0), big.mark = ",")), 
                  "Total cost with alerts",
+                 color = "purple")
+    })
+    output$change_medical_cost <- renderValueBox({
+        valueBox(paste0("$", format(round(data()$medical_cost_alert-data()$total_cost_no_alert, 0), 
+                                    big.mark = ",")),
+                 "Change in medical costs with alerts",
                  color = "purple")
     })
     output$medical_cost_alert <- renderValueBox({
