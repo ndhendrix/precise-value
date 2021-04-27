@@ -302,6 +302,14 @@ precisevalueServer <- function(id) {
                     n_clo_alert_ade = ADE_results_clo_alert$total,
                     qaly_no_alert = sum(CEA_results_discounted$no_alert_qaly),
                     qaly_alert = sum(CEA_results_discounted$alert_qaly),
+                    inc_qaly_disc = round(sum(CEA_results_discounted$alert_qaly) - 
+                                              sum(CEA_results_discounted$no_alert_qaly), 1),
+                    inc_cost_disc = round(sum(CEA_results_discounted$alert_cost_total) - 
+                                              sum(CEA_results_discounted$no_alert_cost), 0),
+                    icer_discounted = round((sum(CEA_results_discounted$alert_cost_total) - 
+                                           sum(CEA_results_discounted$no_alert_cost)) /
+                        (sum(CEA_results_discounted$alert_qaly) - 
+                             sum(CEA_results_discounted$no_alert_qaly)), 0),
                     table = outcomes
                 )
             })
@@ -340,9 +348,6 @@ ui <- dashboardPage(
         tabItems(
             tabItem(tabName = "summary",
                     h2(
-                        # sidebarPanel(
-                        #     precisevalueUI("model_inputs", "Model Inputs")
-                        # ),
                         fluidRow(
                             valueBoxOutput("n_alerts"),
                             valueBoxOutput("n_clo_alerts"),
@@ -372,22 +377,25 @@ ui <- dashboardPage(
                             #valueBoxOutput("total_cost_alert"),
                             valueBoxOutput("change_medical_cost"),
                             valueBoxOutput("admin_cost_alert")
-                        ) #,
-                        # fluidRow(
-                        #     valueBoxOutput("n_clo_no_alert_ade"),
-                        #     valueBoxOutput("n_clo_alert_ade")
-                        # )
+                        )
                     )
                     ),
             tabItem(tabName = "value",
                     h2(
-                        
+                        fluidRow(
+                            valueBoxOutput("icer")
+                        ),
+                        fluidRow(
+                            valueBoxOutput("total_cost_no_alert"),
+                            valueBoxOutput("total_cost_alert")
+                        ),
+                        fluidRow(
+                            valueBoxOutput("qaly_no_alert"),
+                            valueBoxOutput("qaly_alert")
+                        )
                     )),
             tabItem(tabName = "ades",
                     h2(
-                        # sidebarPanel(
-                        #     precisevalueUI("model_inputs", "Model Inputs")
-                        # ),
                         fluidRow(
                             column(width = 12,
                                    box(
@@ -517,12 +525,6 @@ server <- function(input, output, session) {
                  "Non-fatal MIs prevented by clopidogrel alerts",
                  color = "yellow")
     })
-    # output$alert_decreased_war_deaths <- renderValueBox({
-    #     valueBox(round(-(sum(data()$table$war_alert_death))-
-    #                        (sum(data()$table$war_noalert_death)), 0),
-    #              "Deaths prevented by warfarin alerts",
-    #              color = "yellow")
-    # })
     output$total_cost_no_alert <- renderValueBox({
         valueBox(paste0("$", format(round(data()$total_cost_no_alert, 0), big.mark = ",")), 
                  "Cost of medical therapy without alerts",
@@ -559,8 +561,21 @@ server <- function(input, output, session) {
                  "Clopidogrel adverse drug events with alerts",
                  color = "purple")
     })
-    output$qaly_no_alert <- renderText(paste("QALY without alerts: ", data()$qaly_no_alert))
-    output$qaly_alert <- renderText(paste("QALY with alerts: ", data()$qaly_alert))
+    output$icer <- renderValueBox({
+        valueBox(paste0("$", format(data()$icer_discounted, big.mark = ",")),
+                 "Incremental cost effectiveness ratio (ICER)",
+                 color = "purple")
+    })
+    output$qaly_no_alert <- renderValueBox({
+        valueBox(round(data()$qaly_no_alert, 2),
+                 "Quality-adjusted life years (QALYs) without alerts",
+                 color = "purple")
+    })
+    output$qaly_alert <- renderValueBox({
+        valueBox(round(data()$qaly_alert, 2),
+                 "Quality-adjusted life years (QALYs) with alerts",
+                 color = "purple")
+    })
     output$table <- DT::renderDataTable({
         DT::datatable(data()$table, 
                       options = list(pageLength = 10))
