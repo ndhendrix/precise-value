@@ -460,14 +460,14 @@ server <- function(input, output, session) {
     output$clo_alerts_by_year <- renderPlot(
         ggplot(data()$table, aes(x = year, y = round(clo_n_alert, 0))) +
             geom_bar(stat = "identity") +
-            theme_bw(base_size = 12) +
-            labs(x = "Year", y = "Number of alerts")
+            theme_bw(base_size = 14) +
+            labs(x = "Year", y = "Annual number of alerts")
     )
     output$war_alerts_by_year <- renderPlot(
         ggplot(data()$table, aes(x = year, y = round(war_n_alert, 0))) +
             geom_bar(stat = "identity") +
-            theme_bw(base_size = 12) +
-            labs(x = "Year", y = "Number of alerts")
+            theme_bw(base_size = 14) +
+            labs(x = "Year", y = "Annual number of alerts")
     )
     output$alert_decreased_clo_deaths <- renderValueBox({
         valueBox(round(-(sum(data()$table$clo_alert_CVDeath))-
