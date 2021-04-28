@@ -139,7 +139,6 @@ precisevalueServer <- function(id) {
                 clo_outcomes$clo_noalert_NONCVDeath <- clo_outcomes$clo_n_alert * p_change_no_alert * NONCVDeath_change_clo
                 clo_outcomes$clo_alert_NONCVDeath <- clo_outcomes$clo_n_alert * p_change_alert * NONCVDeath_change_clo
                 
-                
                 # STEP 2: WARFARIN: Notes added on: 01/23/2021
                 # (1) get the final number of people who can benefit from alerts and PGx
                 
@@ -270,6 +269,41 @@ precisevalueServer <- function(id) {
                 ADE_results_clo_alert <- ADE_results_clo %>% 
                     select(starts_with("alert")) %>%
                     mutate(total = rowSums(.))
+                clo_ae <- c("CV deaths", "Non-fatal MIs", "Stent Thromboses", 
+                            "Non-fatal intracranial bleeding", "Non-fatal extracranial bleeding", 
+                            "CABG bleeding", "CABG revascularizations",
+                            "PCI revascularizations")
+                clo_no_alert_freq <- c(sum(ADE_results_clo$noalert_CVDeath),
+                                       sum(ADE_results_clo$noalert_NonFatalMI), 
+                                       sum(ADE_results_clo$noalert_StentThrombosis), 
+                                       sum(ADE_results_clo$noalert_NonFatalIntracranial),
+                                       sum(ADE_results_clo$noalert_NonFatalExtracranial),
+                                       sum(ADE_results_clo$noalert_CABGBleeding),
+                                       sum(ADE_results_clo$noalert_CABGRevascularization),
+                                       sum(ADE_results_clo$noalert_PCIRevascularization)
+                                       )
+                clo_alert_freq <- c(sum(ADE_results_clo$alert_CVDeath),
+                                    sum(ADE_results_clo$alert_NonFatalMI), 
+                                    sum(ADE_results_clo$alert_StentThrombosis), 
+                                    sum(ADE_results_clo$alert_NonFatalIntracranial),
+                                    sum(ADE_results_clo$alert_NonFatalExtracranial),
+                                    sum(ADE_results_clo$alert_CABGBleeding),
+                                    sum(ADE_results_clo$alert_CABGRevascularization),
+                                    sum(ADE_results_clo$alert_PCIRevascularization)
+                )
+                clo_ae_table <- tibble(clo_ae, clo_no_alert_freq, clo_alert_freq)
+                colnames(clo_ae_table) <- c("Adverse event", "Events without alerts", "Events with alerts")
+                
+                war_ae <- c("Deaths", "Clots", "Bleeds")
+                war_no_alert_freq <- c(sum(ADE_results_war$noalert_Death),
+                                       sum(ADE_results_war$noalert_Clot),
+                                       sum(ADE_results_war$noalert_Bleeding))
+                war_alert_freq <- c(sum(ADE_results_war$alert_Death),
+                                    sum(ADE_results_war$alert_Clot),
+                                    sum(ADE_results_war$alert_Bleeding))
+                war_ae_table <- tibble(war_ae, war_no_alert_freq, war_alert_freq)
+                colnames(war_ae_table) <- c("Adverse event", "Events without alerts", "Events with alerts")
+
                 list(
                     n_alerts = sum(outcomes$clo_n_alert+outcomes$war_n_alert),
                     n_clo_alerts = sum(outcomes$clo_n_alert),
@@ -310,7 +344,9 @@ precisevalueServer <- function(id) {
                                            sum(CEA_results_discounted$no_alert_cost)) /
                         (sum(CEA_results_discounted$alert_qaly) - 
                              sum(CEA_results_discounted$no_alert_qaly)), 0),
-                    table = outcomes
+                    table = outcomes,
+                    clo_ae_table = clo_ae_table,
+                    war_ae_table = war_ae_table
                 )
             })
 
@@ -352,8 +388,6 @@ ui <- dashboardPage(
                             valueBoxOutput("n_alerts"),
                             valueBoxOutput("n_clo_alerts"),
                             valueBoxOutput("n_war_alerts")
-                            #box(textOutput("qaly_no_alert")),
-                            #box(textOutput("qaly_alert"),)
                         ),
                         fluidRow(
                             box(title = "Yearly Clopidogrel Alerts",
@@ -373,8 +407,6 @@ ui <- dashboardPage(
                             valueBoxOutput("alert_war_bleeding_events")
                         ),
                         fluidRow(
-                            #valueBoxOutput("total_cost_no_alert"),
-                            #valueBoxOutput("total_cost_alert"),
                             valueBoxOutput("change_medical_cost"),
                             valueBoxOutput("admin_cost_alert")
                         )
@@ -399,12 +431,21 @@ ui <- dashboardPage(
                         fluidRow(
                             column(width = 12,
                                    box(
-                                       title = "All data", width = NULL, status = "primary",
-                                       div(style = 'overflow-x: scroll', DT::dataTableOutput('table'))
+                                       title = "Clopidogrel adverse events", width = NULL, status = "primary",
+                                       div(style = 'overflow-x: scroll', DT::dataTableOutput('clo_ae_table'))
+                                       )
+                                   ) 
+                            ),
+                        fluidRow(
+                            column(width = 12,
+                                   box(
+                                       title = "Warfarin adverse events", width = NULL, status = "primary",
+                                       div(style = 'overflow-x: scroll', DT::dataTableOutput('war_ae_table'))
+                                       )
                                    )
-                        ) 
-                    )
-                    )),
+                            )
+                        )
+                    ),
             tabItem(tabName = "info",
                     tags$ul(
                 h2("Primer on Economic Evaluation"),
@@ -527,7 +568,7 @@ server <- function(input, output, session) {
     })
     output$total_cost_no_alert <- renderValueBox({
         valueBox(paste0("$", format(round(data()$total_cost_no_alert, 0), big.mark = ",")), 
-                 "Cost of medical therapy without alerts",
+                 "Total cost without alerts",
                  color = "purple")
     })
     output$total_cost_alert <- renderValueBox({
@@ -576,8 +617,12 @@ server <- function(input, output, session) {
                  "Quality-adjusted life years (QALYs) with alerts",
                  color = "purple")
     })
-    output$table <- DT::renderDataTable({
-        DT::datatable(data()$table, 
+    output$clo_ae_table <- DT::renderDataTable({
+        DT::datatable(data()$clo_ae_table, 
+                      options = list(pageLength = 10))
+    })
+    output$war_ae_table <- DT::renderDataTable({
+        DT::datatable(data()$war_ae_table, 
                       options = list(pageLength = 10))
     })
 
