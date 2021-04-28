@@ -383,6 +383,13 @@ ui <- dashboardPage(
         ),
         tabItems(
             tabItem(tabName = "summary",
+                    box(title = "Welcome to PRECISE-Value!",
+                        solidHeader = F,
+                        collapsible = F,
+                        width = 12,
+                        fluidRow(column(width = 8, textOutput("welcome_text")),
+                                 column(width = 4, align = "center",
+                                        img(src="DLMP_logo.jpg", width=200)))),
                     h2(
                         fluidRow(
                             valueBoxOutput("n_alerts"),
@@ -487,6 +494,14 @@ ui <- dashboardPage(
 
 server <- function(input, output, session) {
     data <- precisevalueServer("model_inputs")
+    
+    output$welcome_text <- renderText("This web application estimates the value of 
+                                      developing and implementing clinical decision support 
+                                      (CDS) alerts for pharmacogenomics (PGx), using a prototype 
+                                      decision-analytic model. The model is intended help 
+                                      decision makers in Learning Health Systems, who are 
+                                      considering using PGx to improve the quality of patient 
+                                      care.")
    
     output$n_alerts <- renderValueBox({
         valueBox(
