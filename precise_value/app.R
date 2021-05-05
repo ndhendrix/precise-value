@@ -425,10 +425,16 @@ ui <- dashboardPage(
                     fluidPage(
                         fluidRow(
                             box(
-                                includeMarkdown(here("R", "background_markdown.Rmd"))
+                                    includeMarkdown(here("R", "background_markdown.Rmd"))
+                                    )
+                            ),
+                        fluidRow(
+                            box(
+                                    includeMarkdown(here("R", "variable_table.Rmd"))
+                                )
                             )
                         )
-                    )
+                    ),
                     # tags$ul(
                     #     h2("Primer on Economic Evaluation"),
                     #     
@@ -458,7 +464,7 @@ ui <- dashboardPage(
                     #     h4("If your estimated ICER is below your chosen WTP, consider implementing the tested intervention"),
                     #     h4("If your estimated ICER is above your chosen WTP, consider implementing the alternative intervention")
                     # )
-            ),
+            
             tabItem(tabName = "interp",
                     h2(
                         
