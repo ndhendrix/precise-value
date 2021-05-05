@@ -471,15 +471,15 @@ ui <- dashboardPage(
                         fluidRow(column(width = 12, textOutput("value_text")))),
                     h2(
                         fluidRow(
-                            valueBoxOutput("icer")
+                            valueBoxOutput("qaly_alert"),
+                            valueBoxOutput("qaly_no_alert")
                         ),
                         fluidRow(
                             valueBoxOutput("total_cost_alert"),
                             valueBoxOutput("total_cost_no_alert")
                         ),
                         fluidRow(
-                            valueBoxOutput("qaly_alert"),
-                            valueBoxOutput("qaly_no_alert")
+                            valueBoxOutput("icer")
                         )
                     )),
             tabItem(tabName = "ades",
