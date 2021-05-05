@@ -423,7 +423,11 @@ ui <- dashboardPage(
                     ),
             tabItem(tabName = "info",
                     fluidPage(
-                        includeMarkdown(here("R", "explanation_markdown.Rmd"))
+                        fluidRow(
+                            box(
+                                includeMarkdown(here("R", "explanation_markdown.Rmd"))
+                            )
+                        )
                     )
                     # tags$ul(
                     #     h2("Primer on Economic Evaluation"),
