@@ -425,7 +425,7 @@ ui <- dashboardPage(
                     fluidPage(
                         fluidRow(
                             box(
-                                includeMarkdown(here("R", "explanation_markdown.Rmd"))
+                                includeMarkdown(here("R", "background_markdown.Rmd"))
                             )
                         )
                     )
