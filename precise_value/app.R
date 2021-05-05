@@ -292,8 +292,28 @@ precisevalueServer <- function(id) {
                                     sum(ADE_results_clo$alert_CABGRevascularization),
                                     sum(ADE_results_clo$alert_PCIRevascularization)
                 )
-                clo_ae_table <- tibble(clo_ae, clo_no_alert_freq, clo_alert_freq)
-                colnames(clo_ae_table) <- c("Adverse event", "Events without alerts", "Events with alerts")
+                clo_alert_diff <- c(sum(ADE_results_clo$alert_CVDeath)-
+                                        sum(ADE_results_clo$noalert_CVDeath),
+                                    sum(ADE_results_clo$alert_NonFatalMI)-
+                                        sum(ADE_results_clo$noalert_NonFatalMI), 
+                                    sum(ADE_results_clo$alert_StentThrombosis)-
+                                        sum(ADE_results_clo$noalert_StentThrombosis), 
+                                    sum(ADE_results_clo$alert_NonFatalIntracranial)-
+                                        sum(ADE_results_clo$noalert_NonFatalIntracranial),
+                                    sum(ADE_results_clo$alert_NonFatalExtracranial)-
+                                        sum(ADE_results_clo$noalert_NonFatalExtracranial),
+                                    sum(ADE_results_clo$alert_CABGBleeding)-
+                                        sum(ADE_results_clo$noalert_CABGBleeding),
+                                    sum(ADE_results_clo$alert_CABGRevascularization)-
+                                        sum(ADE_results_clo$noalert_CABGRevascularization),
+                                    sum(ADE_results_clo$alert_PCIRevascularization)-
+                                        sum(ADE_results_clo$noalert_PCIRevascularization)
+                )
+                clo_ae_table <- tibble(clo_ae, clo_no_alert_freq, clo_alert_freq, clo_alert_diff)
+                clo_ae_table <- clo_ae_table %>%
+                    mutate(across(where(is.numeric), ~ round(.x, 2)))
+                colnames(clo_ae_table) <- c("Adverse event", "Events without alerts", 
+                                            "Events with alerts", "Difference in Events")
                 
                 war_ae <- c("Deaths", "Clots", "Bleeds")
                 war_no_alert_freq <- c(sum(ADE_results_war$noalert_Death),
@@ -302,8 +322,17 @@ precisevalueServer <- function(id) {
                 war_alert_freq <- c(sum(ADE_results_war$alert_Death),
                                     sum(ADE_results_war$alert_Clot),
                                     sum(ADE_results_war$alert_Bleeding))
-                war_ae_table <- tibble(war_ae, war_no_alert_freq, war_alert_freq)
-                colnames(war_ae_table) <- c("Adverse event", "Events without alerts", "Events with alerts")
+                war_alert_diff <- c(sum(ADE_results_war$alert_Death)-
+                                        sum(ADE_results_war$noalert_Death),
+                                    sum(ADE_results_war$alert_Clot)-
+                                        sum(ADE_results_war$noalert_Clot),
+                                    sum(ADE_results_war$alert_Bleeding)-
+                                        sum(ADE_results_war$noalert_Bleeding))
+                war_ae_table <- tibble(war_ae, war_no_alert_freq, war_alert_freq, war_alert_diff)
+                war_ae_table <- war_ae_table %>%
+                    mutate(across(where(is.numeric), ~ round(.x, 2)))
+                colnames(war_ae_table) <- c("Adverse event", "Events without alerts", 
+                                            "Events with alerts", "Difference in Events")
 
                 list(
                     n_alerts = sum(outcomes$clo_n_alert+outcomes$war_n_alert),
@@ -372,9 +401,9 @@ ui <- dashboardPage(
         sidebarMenu(
             id = "sbMenu",
             menuItem("Summary", tabName = "summary", icon = icon("dashboard")),
-            menuItem("Background information", tabName = "info", icon = icon("table")),
             menuItem("Clinical event details", tabName = "ades", icon = icon("table")),
             menuItem("Economic value details", tabName = "value", icon = icon("table")),
+            menuItem("Background information", tabName = "info", icon = icon("table")),
             menuItem("Data Selection", tabName = "ds", startExpanded = TRUE,
                      precisevalueUI("model_inputs", "Model Inputs")))
         ),
@@ -423,18 +452,23 @@ ui <- dashboardPage(
             tabItem(tabName = "info",
                     fluidPage(
                         fluidRow(
-                            box(
-                                    includeMarkdown(here("R", "background_markdown.Rmd"))
-                                    )
+                            column(width = 12,
+                                   box(includeMarkdown(here("R", "background_markdown.Rmd")))
+                                   )
                             ),
                         fluidRow(
-                            box(
-                                    includeMarkdown(here("R", "variable_table.Rmd"))
-                                )
+                            column(width = 12,
+                                   box(includeMarkdown(here("R", "variable_table.Rmd")))
                             )
+                        )
                         )
                     ),
             tabItem(tabName = "value",
+                    box(title = "Economic value background",
+                        solidHeader = F,
+                        collapsible = F,
+                        width = 12,
+                        fluidRow(column(width = 12, textOutput("value_text")))),
                     h2(
                         fluidRow(
                             valueBoxOutput("icer")
@@ -449,11 +483,16 @@ ui <- dashboardPage(
                         )
                     )),
             tabItem(tabName = "ades",
+                    box(title = "Clinical events background",
+                        solidHeader = F,
+                        collapsible = F,
+                        width = 12,
+                        fluidRow(column(width = 12, textOutput("events_text")))),
                     h2(
                         fluidRow(
                             column(width = 12,
                                    box(
-                                       title = "Clopidogrel adverse events", width = NULL, status = "primary",
+                                       title = "Clopidogrel adverse events", width = NULL,
                                        div(style = 'overflow-x: scroll', DT::dataTableOutput('clo_ae_table'))
                                        )
                                    ) 
@@ -461,7 +500,7 @@ ui <- dashboardPage(
                         fluidRow(
                             column(width = 12,
                                    box(
-                                       title = "Warfarin adverse events", width = NULL, status = "primary",
+                                       title = "Warfarin adverse events", width = NULL,
                                        div(style = 'overflow-x: scroll', DT::dataTableOutput('war_ae_table'))
                                        )
                                    )
@@ -488,6 +527,24 @@ server <- function(input, output, session) {
     # output$explanation_markdown <- renderUI({
     #     HTML(markdown::markdownToHTML(knit(here("R", "explanation_markdown.Rmd"), quiet = TRUE)))
     # })
+    output$events_text <- renderText("The data on this tab summarize the change in the expected 
+                                     number of specific clinical events under 2 conditions: 1) no
+                                     clinical decision support alerts are used and 2) clinical
+                                     decision support alerts to guide either the use of clopidogrel
+                                     or the use of warfarin are implemented. At baseline, without
+                                     alerts there is some change in medical therapy, so changes in
+                                     clinical events represent the impact of those changes to treatment.
+                                     With alerts, there is an increased frequency of changes to
+                                     medical treatment, which then impacts the number of events.")
+    output$value_text <- renderText("The data on this tab summarize the calculated value of alerts
+                                    compared with no alerts. Costs represent the total costs associated
+                                    with both changes to medical therapy (shifting to higher cost drugs)
+                                    and build and maintenance of clinical decision support. Quality
+                                    adjusted life years (QALYs) represent the incremental change in
+                                    QALYs when alerts are used vs. when they are not. Incremental cost
+                                    effectiveness ratio (ICER) represents the difference in incremental
+                                    QALYs gained divided by the cost of the intervention (deploying
+                                    alerts).")
     output$n_alerts <- renderValueBox({
         valueBox(
             round(data()$n_alerts, 0), "Total number of alerts",
