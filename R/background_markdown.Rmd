@@ -1,8 +1,15 @@
 ---
 title: "Clinical Decision Support Pharmacogenomic Testing"
-output: html_document:
-  css: here("R", "style.css")
+output: html_document
 ---
+
+<style type="text/css">
+
+body{ /* Normal  */
+      font-size: 20px;
+  }
+  
+</style>
 
 **What is PRECISE-VALUE?**
 
