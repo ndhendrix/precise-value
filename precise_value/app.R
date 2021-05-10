@@ -403,7 +403,7 @@ ui <- dashboardPage(
             menuItem("Summary", tabName = "summary", icon = icon("dashboard")),
             menuItem("Clinical event details", tabName = "ades", icon = icon("table")),
             menuItem("Economic value details", tabName = "value", icon = icon("table")),
-            menuItem("Primer & background info", tabName = "info", icon = icon("table")),
+            menuItem("Background info & primer", tabName = "info", icon = icon("table")),
             menuItem("Data Selection", tabName = "ds", startExpanded = TRUE,
                      precisevalueUI("model_inputs", "Model Inputs")))
         ),
@@ -417,8 +417,8 @@ ui <- dashboardPage(
                         solidHeader = F,
                         collapsible = F,
                         width = 12,
-                        fluidRow(column(width = 4, textOutput("welcome_text")),
-                                 column(width = 4, align = "center",
+                        fluidRow(column(width = 6, textOutput("welcome_text")),
+                                 column(width = 3, align = "center",
                                         img(src="DLMP_logo.jpg", width=200))#,
                                  # column(width = 4, align = "center",
                                  #        image(src="Choice-WDeptSig-Web-Purple.jpg"))
@@ -456,12 +456,14 @@ ui <- dashboardPage(
                     fluidPage(
                         fluidRow(
                             column(width = 12,
-                                   box(includeMarkdown(here("R", "background_markdown.Rmd")))
+                                   box(width = 12,
+                                       includeMarkdown(here("R", "background_markdown.Rmd")))
                                    )
                             ),
                         fluidRow(
                             column(width = 12,
-                                   box(includeMarkdown(here("R", "variable_table.Rmd")))
+                                   box(width =12,
+                                       includeMarkdown(here("R", "variable_table.Rmd")))
                             )
                         )
                         )
