@@ -417,9 +417,12 @@ ui <- dashboardPage(
                         solidHeader = F,
                         collapsible = F,
                         width = 12,
-                        fluidRow(column(width = 8, textOutput("welcome_text")),
+                        fluidRow(column(width = 4, textOutput("welcome_text")),
                                  column(width = 4, align = "center",
-                                        img(src="DLMP_logo.jpg", width=200)))),
+                                        img(src="DLMP_logo.jpg", width=200))#,
+                                 # column(width = 4, align = "center",
+                                 #        image(src="Choice-WDeptSig-Web-Purple.jpg"))
+                                 )),
                     h2(
                         fluidRow(
                             valueBoxOutput("n_alerts"),
@@ -577,7 +580,7 @@ server <- function(input, output, session) {
     )
     output$alert_decreased_clo_deaths <- renderValueBox({
         valueBox(round(-(sum(data()$table$clo_alert_CVDeath))-
-                           (sum(data()$table$clo_noalert_CVDeath)), 0),
+                           (sum(data()$table$clo_noalert_CVDeath)), 1),
                  "Deaths prevented by clopidogrel alerts",
                  color = "yellow")
     })
@@ -585,7 +588,7 @@ server <- function(input, output, session) {
         valueBox(-round((data()$clo_non_fatal_mi_alert+data()$clo_stent_thrombosis_alert+
                            data()$clo_cabg_revasc_alert+data()$clo_pci_revasc_alert)-
                            (data()$clo_non_fatal_mi_no_alert+data()$clo_stent_thrombosis_no_alert+
-                                data()$clo_cabg_revasc_no_alert+data()$clo_pci_revasc_no_alert), 0),
+                                data()$clo_cabg_revasc_no_alert+data()$clo_pci_revasc_no_alert), 1),
                  "Clinical events prevented by clopidogrel alerts",
                  color = "yellow"
         )
@@ -594,25 +597,25 @@ server <- function(input, output, session) {
         valueBox(round((data()$clo_non_fatal_ic_bleed_alert+data()$clo_non_fatal_ec_bleed_alert+
                             data()$clo_cabg_bleed_alert)-
                            (data()$clo_non_fatal_ic_bleed_no_alert+data()$clo_non_fatal_ec_bleed_no_alert+
-                                data()$clo_cabg_bleed_no_alert), 0),
+                                data()$clo_cabg_bleed_no_alert), 1),
                  "Change in bleeding events due to clopidogrel alerts",
                  color = "yellow"
         )
     })
     output$alert_decreased_war_deaths <- renderValueBox({
-        valueBox(-round((data()$war_death_alert)-(data()$war_death_no_alert), 0),
+        valueBox(-round((data()$war_death_alert)-(data()$war_death_no_alert), 1),
                  "Decreased deaths due to warfarin alerts",
                  color = "yellow"
         )
     })
     output$alert_decreased_war_clots <- renderValueBox({
-        valueBox(-round((data()$war_clot_alert)-(data()$war_clot_no_alert), 0),
+        valueBox(-round((data()$war_clot_alert)-(data()$war_clot_no_alert), 1),
                  "Clinical events (clots) prevented due to warfarin alerts",
                  color = "yellow"
         )
     })
     output$alert_war_bleeding_events <- renderValueBox({
-        valueBox(round((data()$war_bleed_alert)-(data()$war_bleed_no_alert), 0),
+        valueBox(round((data()$war_bleed_alert)-(data()$war_bleed_no_alert), 1),
                  "Change in bleeding events due to warfarin alerts",
                  color = "yellow"
         )
@@ -650,12 +653,12 @@ server <- function(input, output, session) {
                  color = "purple")
     })
     output$n_clo_no_alert_ade <- renderValueBox({
-        valueBox(round(data()$n_clo_no_alert_ade, 0), 
+        valueBox(round(data()$n_clo_no_alert_ade, 1), 
                  "Clopidogrel adverse drug events without alerts",
                  color = "purple")
     })
     output$n_clo_alert_ade <- renderValueBox({
-        valueBox(round(data()$n_clo_alert_ade, 0), 
+        valueBox(round(data()$n_clo_alert_ade, 1), 
                  "Clopidogrel adverse drug events with alerts",
                  color = "purple")
     })
