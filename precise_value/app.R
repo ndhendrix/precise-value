@@ -403,7 +403,7 @@ ui <- dashboardPage(
             menuItem("Summary", tabName = "summary", icon = icon("dashboard")),
             menuItem("Clinical event details", tabName = "ades", icon = icon("table")),
             menuItem("Economic value details", tabName = "value", icon = icon("table")),
-            menuItem("Background information", tabName = "info", icon = icon("table")),
+            menuItem("Primer & background info", tabName = "info", icon = icon("table")),
             menuItem("Data Selection", tabName = "ds", startExpanded = TRUE,
                      precisevalueUI("model_inputs", "Model Inputs")))
         ),
