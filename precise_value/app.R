@@ -449,8 +449,11 @@ ui <- dashboardPage(
                             valueBoxOutput("alert_war_bleeding_events")
                         ),
                         fluidRow(
+                            column(width = 12,
                             valueBoxOutput("change_medical_cost"),
-                            valueBoxOutput("admin_cost_alert")
+                            valueBoxOutput("admin_cost_alert"),
+                            offset = 2
+                            )
                         )
                     )
                     ),
@@ -468,7 +471,7 @@ ui <- dashboardPage(
                             column(width = 12,
                                    box(title = tags$p("Variable Definitions", 
                                                       style = "font-size: 150%"),
-                                       width =12,
+                                       width = 12,
                                        includeMarkdown(here("R", "variable_table.Rmd")))
                             )
                         ),
@@ -476,7 +479,7 @@ ui <- dashboardPage(
                             column(width = 12,
                                    box(title = tags$p("Economic Evaluation Primer", 
                                                       style = "font-size: 150%"),
-                                       width =12,
+                                       width = 12,
                                        includeMarkdown(here("R", "econ_evaluation_primer.Rmd")))
                             )
                         )
@@ -491,15 +494,24 @@ ui <- dashboardPage(
                         fluidRow(column(width = 12, textOutput("value_text")))),
                     h2(
                         fluidRow(
-                            valueBoxOutput("qaly_alert"),
-                            valueBoxOutput("qaly_no_alert")
+                            column(width = 12,
+                                   valueBoxOutput("total_cost_alert"),
+                                   valueBoxOutput("total_cost_no_alert"),
+                                   offset = 2
+                            )
                         ),
                         fluidRow(
-                            valueBoxOutput("total_cost_alert"),
-                            valueBoxOutput("total_cost_no_alert")
+                            column(width = 12,
+                                   valueBoxOutput("qaly_alert"),
+                                   valueBoxOutput("qaly_no_alert"),
+                                   offset = 2
+                            )
                         ),
                         fluidRow(
-                            valueBoxOutput("icer")
+                            column(width = 12,
+                                   valueBoxOutput("icer"),
+                                   offset = 4
+                            )
                         )
                     )),
             tabItem(tabName = "ades",
@@ -513,7 +525,9 @@ ui <- dashboardPage(
                         fluidRow(
                             column(width = 12,
                                    box(
-                                       title = "Clopidogrel adverse events", width = NULL,
+                                       title = tags$p("Clopidogrel adverse events",
+                                                      style = "font-size: 150%"), 
+                                       width = NULL,
                                        div(style = 'overflow-x: scroll', DT::dataTableOutput('clo_ae_table'))
                                        )
                                    ) 
@@ -521,7 +535,9 @@ ui <- dashboardPage(
                         fluidRow(
                             column(width = 12,
                                    box(
-                                       title = "Warfarin adverse events", width = NULL,
+                                       title = tags$p("Warfarin adverse events",
+                                                      style = "font-size: 150%"), 
+                                       width = NULL,
                                        div(style = 'overflow-x: scroll', DT::dataTableOutput('war_ae_table'))
                                        )
                                    )
@@ -730,11 +746,13 @@ server <- function(input, output, session) {
     })
     output$clo_ae_table <- DT::renderDataTable({
         DT::datatable(data()$clo_ae_table, 
-                      options = list(pageLength = 10))
+                      options = list(pageLength = 10,
+                                     sDom  = '<"top">rt<"bottom">'))
     })
     output$war_ae_table <- DT::renderDataTable({
         DT::datatable(data()$war_ae_table, 
-                      options = list(pageLength = 10))
+                      options = list(pageLength = 10,
+                                     sDom  = '<"top">rt<"bottom">'))
     })
 
 }
