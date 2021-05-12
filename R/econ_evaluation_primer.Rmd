@@ -28,13 +28,6 @@ output: html_document
 
 ## Results of Economic Evaluation
 
-+-------------------------------+---------------------+---------------------+
-| Intervention                  | Total Costs         | Total QALYs         |
-+:==============================+:====================+:====================+
-| Intervention A                | $20,000             |	3.6                 |
-| Intervention B: usual care    | $10,000             | 3.15                |
-+-------------------------------+---------------------+---------------------+
-
 |Intervention   |Total Costs  |Total QALYs    |
 |---|---|---|
 |Intervention A |$20,000 | 3.6 |
