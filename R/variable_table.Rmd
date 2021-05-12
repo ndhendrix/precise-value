@@ -4,8 +4,8 @@ output: html_document
 ---
 
 
-Variable                        |        Definition
-------------                    |        -----------------
+Variable                            | Definition
+------------------------------------|-----------------------------------------
 Total number of alerts    |  Total number of alerts fired over lifespan of PGx-CDS alerting system
 Clodigrel alerts  |   Number of alerts for patients at risk of being prescribed antiplatelet for ACS fired over lifespan of PGx-CDS alerting system
 Warfarin alerts       |   Number of alerts for patients at risk of being prescribed warfarin for AF fired over lifespan of PGx-CDS alerting system
