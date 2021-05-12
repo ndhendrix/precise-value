@@ -449,7 +449,6 @@ ui <- dashboardPage(
                             valueBoxOutput("alert_war_bleeding_events")
                         ),
                         fluidRow(
-                            align = "center",
                             valueBoxOutput("change_medical_cost"),
                             valueBoxOutput("admin_cost_alert")
                         )
