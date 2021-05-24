@@ -472,6 +472,7 @@ ui <- dashboardPage(
                                    box(title = tags$p("Variable Definitions", 
                                                       style = "font-size: 150%"),
                                        width = 12,
+                                       #htmlOutput("variable_table"))
                                        includeMarkdown(here("R", "variable_table.Rmd")))
                             )
                         ),
@@ -480,6 +481,7 @@ ui <- dashboardPage(
                                    box(title = tags$p("Economic Evaluation Primer", 
                                                       style = "font-size: 150%"),
                                        width = 12,
+                                       #htmlOutput("econ_eval_primer"))
                                        includeMarkdown(here("R", "econ_evaluation_primer.Rmd")))
                             )
                         )
@@ -648,7 +650,7 @@ server <- function(input, output, session) {
     output$alert_decreased_war_deaths <- renderValueBox({
         valueBox(value = tags$p(-round((data()$war_death_alert)-(data()$war_death_no_alert), 1),
                                 style = "font-size: 110%"),
-                 subtitle = tags$p("Decreased deaths due to warfarin alerts",
+                 subtitle = tags$p("Deaths prevented by warfarin alerts",
                                    style = "font-size: 100%"),
                  color = "yellow"
         )
@@ -753,6 +755,12 @@ server <- function(input, output, session) {
         DT::datatable(data()$war_ae_table, 
                       options = list(pageLength = 10,
                                      sDom  = '<"top">rt<"bottom">'))
+    })
+    output$econ_eval_primer <- renderUI({
+        includeHTML(here("R", "econ_evaluation_primer.html"))
+    })
+    output$variable_table <- renderUI({
+        includeHTML(here("R", "variable_table.html"))
     })
 
 }
