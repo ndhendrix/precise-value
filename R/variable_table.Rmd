@@ -3,17 +3,34 @@ title: "Variable Definition Table"
 output: html_document
 ---
 
-
-Variable                            | Definition
-------------------------------------|-----------------------------------------
-Total number of alerts    |  Total number of alerts fired over lifespan of PGx-CDS alerting system
-Clodigrel alerts  |   Number of alerts for patients at risk of being prescribed antiplatelet for ACS fired over lifespan of PGx-CDS alerting system
-Warfarin alerts       |   Number of alerts for patients at risk of being prescribed warfarin for AF fired over lifespan of PGx-CDS alerting system
-Deaths prevented by clopidogrel alerts   |  Decrease in deaths from clopidogrel alerts compared to usual care
-Clinical events prevented by clopidogrel alerts   |   Decrease in clinical events including non-fatal myocardial infarction (MI), stent thrombosis, revascularization after coronary artery bypass grafting (CABG), revascularization after percutaneous cornary intervention (PCI)
-Change in bleeding events due to clopidogrel alerts | Change in bleeding events, including non-fatal intracranial bleeds, non-fatal extracranial bleeds, bleeds associated with CABGs, compared to usual care
-Decreased deaths due to warfarin alerts   |   Decrease in deaths from warfarin alerts compared to usual care
-Clinical events (clots) prevented due to warfarin alerts | Decrease in clots due to warfarin alerts compared to usual care
-Change in bleeding events due to warfarin alerts | Change in bleeding events due to warfarin alerts compared to usual care
-Change in medical costs with alerts   |   Change in medical costs, including total costs of changes in drug therapy, due to alerts compared with usual care
-Build and maintenance cost of alerts |    Costs of building and maintaining clinical decision support alerts, based on total effort required for initial build and ongoing maintenance
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+library(tidyverse)
+library(DT)
+variable <- c("Total number of alerts",
+              "Clodigrel alerts",
+              "Warfarin alerts",
+              "Deaths prevented by clopidogrel alerts",
+              "Clinical events prevented by clopidogrel alerts",
+              "Change in bleeding events due to clopidogrel alerts",
+              "Deaths prevented by warfarin alerts",
+              "Clinical events (clots) prevented due to warfarin alerts",
+              "Change in bleeding events due to warfarin alerts",
+              "Change in medical costs with alerts",
+              "Build and maintenance cost of alerts")
+definition <- c("Total number of alerts fired over lifespan of PGx-CDS alerting system",
+                "Number of alerts for patients at risk of being prescribed antiplatelet for ACS fired over lifespan of PGx-CDS alerting system",
+                "Number of alerts for patients at risk of being prescribed warfarin for AF fired over lifespan of PGx-CDS alerting system",
+                "Decrease in deaths from clopidogrel alerts compared to usual care",
+                "Decrease in clinical events including non-fatal myocardial infarction (MI), stent thrombosis, revascularization after coronary artery bypass grafting (CABG), revascularization after percutaneous cornary intervention (PCI)",
+                "Change in bleeding events, including non-fatal intracranial bleeds, non-fatal extracranial bleeds, bleeds associated with CABGs, compared to usual care",
+                "Decrease in deaths from warfarin alerts compared to usual care",
+                "Decrease in clots due to warfarin alerts compared to usual care",
+                "Change in bleeding events due to warfarin alerts compared to usual care",
+                "Change in medical costs, including total costs of changes in drug therapy, due to alerts compared with usual care",
+                "Costs of building and maintaining clinical decision support alerts, based on total effort required for initial build and ongoing maintenance")
+variable_table <- tibble(Variable = variable,
+                         Definition = definition)
+datatable(variable_table,
+          options = list(pageLength = 20,
+                                     sDom  = '<"top">rt<"bottom">'))
+```
