@@ -394,7 +394,7 @@ ui <- dashboardPage(
         width = 350,
         tags$head(
             tags$style(HTML("
-                      .sidebar { height: 95vh; overflow-y: auto; }
+                      .sidebar { height: 100vh; overflow-y: auto; }
                       " )
             )
         ),
@@ -409,7 +409,7 @@ ui <- dashboardPage(
         ),
     dashboardBody(
         tags$head( 
-            tags$style(HTML(".main-sidebar { font-size: 20px; }")) #change the font size to 20
+            tags$style(HTML(".main-sidebar { font-size: 24px; }")) #change the font size to 20
         ),
         tabItems(
             tabItem(tabName = "summary",
@@ -418,10 +418,11 @@ ui <- dashboardPage(
                         collapsible = F,
                         width = 12,
                         fluidRow(column(width = 6, textOutput("welcome_text")),
-                                 column(width = 3, align = "center",
-                                        img(src="DLMP_logo.jpg", width=300))#,
+                                 column(width = 6, align = "center",
+                                        img(src="Choice-WDeptSig-Web-Purple.jpg", width = 500),
+                                        img(src="DLMP_logo.jpg", width=250))#,
                                  # column(width = 3, align = "center",
-                                 #         image(src="Choice-WDeptSig-Web-Purple.tiff"))
+                                 #        )
                                  )),
                     h2(
                         fluidRow(
