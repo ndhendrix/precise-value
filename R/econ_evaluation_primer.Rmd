@@ -28,7 +28,7 @@ output: html_document
 
 ## Results of Economic Evaluation
 
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
+```{r econ_eval_table, echo = FALSE, warning = FALSE, message = FALSE}
 library(tidyverse)
 library(DT)
 intervention <- c("Intervention A", "Intervention B: usual care")
