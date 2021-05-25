@@ -14,7 +14,7 @@ convertMenuItem <- function(mi,tabName) {
     mi
 }
 
-rmdfiles <- c("econ_evaluation_primer.Rmd", "variable_table.Rmd")
+rmdfiles <- c(here("R", "econ_evaluation_primer.Rmd"), here("R", "variable_table.Rmd"))
 sapply(rmdfiles, knit, quiet = T)
 
 # Module UI function
@@ -420,10 +420,10 @@ ui <- dashboardPage(
                         solidHeader = F,
                         collapsible = F,
                         width = 12,
-                        fluidRow(column(width = 7, textOutput("welcome_text")),
-                                 column(width = 5, align = "center",
-                                        img(src="Choice-WDeptSig-Web-Purple.jpg", width = 500),
-                                        img(src="DLMP_logo.jpg", width=250))#,
+                        fluidRow(column(width = 8, textOutput("welcome_text")),
+                                 column(width = 4, align = "center",
+                                        img(src="Choice-WDeptSig-Web-Purple.jpg", width = 400),
+                                        img(src="DLMP_logo.jpg", width = 300))#,
                                  # column(width = 3, align = "center",
                                  #        )
                                  )),
