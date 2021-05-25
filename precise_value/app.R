@@ -14,6 +14,9 @@ convertMenuItem <- function(mi,tabName) {
     mi
 }
 
+rmdfiles <- c("econ_evaluation_primer.Rmd", "variable_table.Rmd")
+sapply(rmdfiles, knit, quiet = T)
+
 # Module UI function
 precisevalueUI <- function(id, label = "model inputs") {
     # `NS(id)` returns a namespace function, which was save as `ns` and will
@@ -417,8 +420,8 @@ ui <- dashboardPage(
                         solidHeader = F,
                         collapsible = F,
                         width = 12,
-                        fluidRow(column(width = 6, textOutput("welcome_text")),
-                                 column(width = 6, align = "center",
+                        fluidRow(column(width = 7, textOutput("welcome_text")),
+                                 column(width = 5, align = "center",
                                         img(src="Choice-WDeptSig-Web-Purple.jpg", width = 500),
                                         img(src="DLMP_logo.jpg", width=250))#,
                                  # column(width = 3, align = "center",
@@ -462,7 +465,7 @@ ui <- dashboardPage(
                     fluidPage(
                         fluidRow(
                             column(width = 12,
-                                   box(title = tags$p("Project Background", 
+                                   box(title = tags$p("Project Background",
                                                       style = "font-size: 150%"),
                                        width = 12,
                                        includeMarkdown(here("R", "background_markdown.Rmd")))
@@ -470,20 +473,20 @@ ui <- dashboardPage(
                             ),
                         fluidRow(
                             column(width = 12,
-                                   box(title = tags$p("Variable Definitions", 
-                                                      style = "font-size: 150%"),
-                                       width = 12,
-                                       #htmlOutput("variable_table"))
-                                       includeMarkdown(here("R", "variable_table.Rmd")))
+                            box(title = tags$p("Variable Definitions",
+                                               style = "font-size: 150%"),
+                                width = 12,
+                                #uiOutput("variable_table"))
+                            includeMarkdown("variable_table.md"))
                             )
                         ),
                         fluidRow(
                             column(width = 12,
-                                   box(title = tags$p("Economic Evaluation Primer", 
-                                                      style = "font-size: 150%"),
-                                       width = 12,
-                                       #htmlOutput("econ_eval_primer"))
-                                       includeMarkdown(here("R", "econ_evaluation_primer.Rmd")))
+                            box(title = tags$p("Economic Evaluation Primer",
+                                           style = "font-size: 150%"),
+                            width = 12,
+                            #uiOutput("econ_eval_primer"))
+                            includeMarkdown("econ_evaluation_primer.md"))
                             )
                         )
                         )
@@ -564,9 +567,6 @@ server <- function(input, output, session) {
                                       decision makers in Learning Health Systems, who are 
                                       considering using PGx to improve the quality of patient 
                                       care.")
-    # output$explanation_markdown <- renderUI({
-    #     HTML(markdown::markdownToHTML(knit(here("R", "explanation_markdown.Rmd"), quiet = TRUE)))
-    # })
     output$events_text <- renderText("The data on this tab summarize the change in the expected 
                                      number of specific clinical events under 2 conditions: 1) no
                                      clinical decision support alerts are used and 2) clinical
@@ -758,10 +758,10 @@ server <- function(input, output, session) {
                                      sDom  = '<"top">rt<"bottom">'))
     })
     output$econ_eval_primer <- renderUI({
-        includeHTML(here("R", "econ_evaluation_primer.html"))
+        HTML(markdown::markdownToHTML(knit(here("R", "econ_evaluation_primer.html"), quiet = TRUE)))
     })
     output$variable_table <- renderUI({
-        includeHTML(here("R", "variable_table.html"))
+        HTML(markdown::markdownToHTML(knit(here("R", "variable_table.html"), quiet = TRUE)))
     })
 
 }
