@@ -5,6 +5,8 @@ output: html_document
 
 ```{r var_table, echo = FALSE, warning = FALSE, message = FALSE}
 library(tidyverse)
+library(knitr)
+library(kableExtra)
 library(DT)
 variable <- c("Total number of alerts",
               "Clodigrel alerts",
@@ -30,7 +32,11 @@ definition <- c("Total number of alerts fired over lifespan of PGx-CDS alerting 
                 "Costs of building and maintaining clinical decision support alerts, based on total effort required for initial build and ongoing maintenance")
 variable_table <- tibble(Variable = variable,
                          Definition = definition)
-datatable(variable_table,
-          options = list(pageLength = 20,
-                                     sDom  = '<"top">rt<"bottom">'))
+variable_table %>%
+  kbl() %>%
+  kable_styling()
+# datatable(variable_table,
+#           rownames = FALSE,
+#           options = list(pageLength = 20,
+#                                      sDom  = '<"top">rt<"bottom">'))
 ```
