@@ -458,6 +458,12 @@ ui <- dashboardPage(
                             valueBoxOutput("admin_cost_alert"),
                             offset = 2
                             )
+                        ),
+                        fluidRow(
+                            column(width = 12,
+                            infoBoxOutput("conditional_value") #,
+                            #tags$style("#conditional_value {width: 1000px;}")
+                            )
                         )
                     )
                     ),
@@ -763,6 +769,51 @@ server <- function(input, output, session) {
     output$variable_table <- renderUI({
         HTML(markdown::markdownToHTML(knit(here("R", "variable_table.html"), quiet = TRUE)))
     })
+    observe({
+        if (data()$icer_discounted < 100000) {
+            output$conditional_value <- renderInfoBox({
+                infoBox(
+                    tags$p("CDS provides value for the cost", style = "font-size: 150%"),
+                    tags$p(paste0("ICER: $", format(data()$icer_discounted, big.mark = ",")),
+                           style = "font-size: 150%"),
+                    color = "purple",
+                    icon = icon("thumbs-up", lib = "glyphicon"),
+                    width = NULL
+                )
+            })
+        }
+        else {
+            output$conditional_value <- renderInfoBox({
+                infoBox(
+                    tags$p("CDS does not provide value for the cost", style = "font-size: 150%"),
+                    tags$p(paste0("ICER: $", format(data()$icer_discounted, big.mark = ",")),
+                           style = "font-size: 150%"),
+                    color = "purple",
+                    icon = icon("thumbs-down", lib = "glyphicon"),
+                    width = NULL
+                )
+            })
+        }
+    })
+    
+    # output$conditional_value <- if (data()$icer_discounted < 100000){
+    #     renderInfoBox({
+    #         infoBox(
+    #             "CDS provides value for the cost",
+    #             paste0("ICER: $", format(data()$icer_discounted, big.mark = ",")),
+    #             icon = icon("thumbs-up", lib = "glyphicon")
+    #         )
+    #     })
+    # }
+    # else {
+    #     renderInfoBox({
+    #         infoBox(
+    #             "CDS does not provide value for the cost",
+    #             paste0("ICER: $", format(data()$icer_discounted, big.mark = ",")),
+    #             icon = icon("thumbs-down", lib = "glyphicon")
+    #         )
+    #     })
+    # }
 
 }
 
