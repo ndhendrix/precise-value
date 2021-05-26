@@ -19,12 +19,10 @@ sapply(rmdfiles, knit, quiet = T)
 
 # Module UI function
 precisevalueUI <- function(id, label = "model inputs") {
-    # `NS(id)` returns a namespace function, which was save as `ns` and will
-    # invoke later.
     ns <- NS(id)
     
     tagList(
-        numericInput(ns("pop_size"), label = "Population size:", value = 500000), ##Joyce updated on 01/12/2021
+        numericInput(ns("pop_size"), label = "Population Size:", value = 500000), ##Joyce updated on 01/12/2021
         numericInput(ns("p_w"), label = "Percentage European Ancestry:", value = 60),
         #numericInput(ns("p_l"), label = "Percentage Latinx:", value = 18),
         numericInput(ns("p_b"), label = "Percentage African Ancestry:", value = 13),
@@ -391,7 +389,7 @@ precisevalueServer <- function(id) {
 
 ui <- dashboardPage(
     skin = "purple",
-    dashboardHeader(title = "PRECISE Value",
+    dashboardHeader(title = tags$p("PRECISE Value", style = "font-size: 150%"),
                     titleWidth = 350),
     dashboardSidebar(
         width = 350,
@@ -406,13 +404,14 @@ ui <- dashboardPage(
             menuItem("Summary", tabName = "summary", icon = icon("dashboard")),
             menuItem("Clinical event details", tabName = "ades", icon = icon("table")),
             menuItem("Economic value details", tabName = "value", icon = icon("table")),
+            menuItem("Variable details", tabName = "variables", icon = icon("table")),
             menuItem("Background info & primer", tabName = "info", icon = icon("table")),
             menuItem("Data Selection", tabName = "ds", startExpanded = TRUE,
                      precisevalueUI("model_inputs", "Model Inputs")))
         ),
     dashboardBody(
         tags$head( 
-            tags$style(HTML(".main-sidebar { font-size: 24px; }")) #change the font size to 20
+            tags$style(HTML(".main-sidebar { font-size: 24px; }"))
         ),
         tabItems(
             tabItem(tabName = "summary",
@@ -423,9 +422,7 @@ ui <- dashboardPage(
                         fluidRow(column(width = 8, textOutput("welcome_text")),
                                  column(width = 4, align = "center",
                                         img(src="Choice-WDeptSig-Web-Purple.jpg", width = 400),
-                                        img(src="DLMP_logo.jpg", width = 300))#,
-                                 # column(width = 3, align = "center",
-                                 #        )
+                                        img(src="DLMP_logo.jpg", width = 300))
                                  )),
                     h2(
                         fluidRow(
@@ -461,6 +458,19 @@ ui <- dashboardPage(
                         )
                     )
                     ),
+            tabItem(tabName = "variables",
+                    fluidPage(
+                        fluidRow(
+                            column(width = 12,
+                                   box(title = tags$p("Variable Definitions",
+                                                      style = "font-size: 150%"),
+                                       width = 12,
+                                       #uiOutput("variable_table"))
+                                       includeMarkdown("variable_table.md"))
+                                   )
+                            )
+                        )
+                    ),
             tabItem(tabName = "info",
                     fluidPage(
                         fluidRow(
@@ -471,15 +481,6 @@ ui <- dashboardPage(
                                        includeMarkdown(here("R", "background_markdown.Rmd")))
                                    )
                             ),
-                        fluidRow(
-                            column(width = 12,
-                            box(title = tags$p("Variable Definitions",
-                                               style = "font-size: 150%"),
-                                width = 12,
-                                #uiOutput("variable_table"))
-                            includeMarkdown("variable_table.md"))
-                            )
-                        ),
                         fluidRow(
                             column(width = 12,
                             box(title = tags$p("Economic Evaluation Primer",
@@ -560,31 +561,9 @@ ui <- dashboardPage(
 server <- function(input, output, session) {
     data <- precisevalueServer("model_inputs")
     
-    output$welcome_text <- renderText("This web application estimates the value of 
-                                      developing and implementing clinical decision support 
-                                      (CDS) alerts for pharmacogenomics (PGx), using a prototype 
-                                      decision-analytic model. The model is intended help 
-                                      decision makers in Learning Health Systems, who are 
-                                      considering using PGx to improve the quality of patient 
-                                      care.")
-    output$events_text <- renderText("The data on this tab summarize the change in the expected 
-                                     number of specific clinical events under 2 conditions: 1) no
-                                     clinical decision support alerts are used and 2) clinical
-                                     decision support alerts to guide either the use of clopidogrel
-                                     or the use of warfarin are implemented. At baseline, without
-                                     alerts there is some change in medical therapy, so changes in
-                                     clinical events represent the impact of those changes to treatment.
-                                     With alerts, there is an increased frequency of changes to
-                                     medical treatment, which then impacts the number of events.")
-    output$value_text <- renderText("The data on this tab summarize the calculated value of alerts
-                                    compared with no alerts. Costs represent the total costs associated
-                                    with both changes to medical therapy (shifting to higher cost drugs)
-                                    and build and maintenance of clinical decision support. Quality
-                                    adjusted life years (QALYs) represent the incremental change in
-                                    QALYs when alerts are used vs. when they are not. Incremental cost
-                                    effectiveness ratio (ICER) represents the difference in incremental
-                                    QALYs gained divided by the cost of the intervention (deploying
-                                    alerts).")
+    output$welcome_text <- renderText("This web application estimates the value of developing and implementing clinical decision support (CDS) alerts for pharmacogenomics (PGx), using a prototype decision-analytic model. After using the input bar on the left to provide data about your health system or scenario you'd like to model, the output on the main panel of each tab in the app will dynamically adjust to show the impact of implementing CDS. PGx and CDS for 2 commonly prescribed drugs - clopidogrel and warfarin - are modeled. Comparisons between alerts and no alerts assume the baseline level of PGx testing is identical in both comparison groups. A detailed definition of any input variable or output in a value box can be found in the Variable details tab.")
+    output$events_text <- renderText("The data on this tab summarize the change in the expected number of specific clinical events under 2 conditions: 1) no clinical decision support alerts are used and 2) clinical decision support alerts to guide either the use of clopidogrel or the use of warfarin are implemented. At baseline, without alerts there is some change in medical therapy, so changes in clinical events represent the impact of those changes to treatment. With alerts, there is an increased frequency of changes to medical treatment, which then impacts the number of events.")
+    output$value_text <- renderText("The data on this tab summarize the calculated value of alerts compared with no alerts. Costs represent the total costs associated with both changes to medical therapy (shifting to higher cost drugs) and build and maintenance of clinical decision support. Quality adjusted life years (QALYs) represent the incremental change in QALYs when alerts are used vs. when they are not. Incremental cost effectiveness ratio (ICER) represents the difference in incremental QALYs gained divided by the cost of the intervention (deploying alerts).")
     output$n_alerts <- renderValueBox({
         valueBox(
             value = tags$p(round(data()$n_alerts, 0), style = "font-size: 110%"), 
