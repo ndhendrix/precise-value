@@ -5,8 +5,20 @@ output: html_document
 
 ```{r var_table, echo = FALSE, warning = FALSE, message = FALSE}
 library(tidyverse)
+library(knitr)
+library(kableExtra)
 library(DT)
-variable <- c("Total number of alerts",
+variable <- c("Population Size", 
+              "Percentage European Ancestry",
+              "Percentage African Ancestry",
+              "Percentage Asian Ancestry",
+              "Starting Age of Screening",
+              "Percentage of Patients Tested Per Year (% of Population)",
+              "Number of Years Population is Tested",
+              "Pharmacogenomic Alert Duration (Years)",
+              "Startup Effort (Hours of IT Build Effort)",
+              "Maintenance Cost (Annual % of Startup Effort)",
+              "Total number of alerts",
               "Clodigrel alerts",
               "Warfarin alerts",
               "Deaths prevented by clopidogrel alerts",
@@ -17,7 +29,17 @@ variable <- c("Total number of alerts",
               "Change in bleeding events due to warfarin alerts",
               "Change in medical costs with alerts",
               "Build and maintenance cost of alerts")
-definition <- c("Total number of alerts fired over lifespan of PGx-CDS alerting system",
+definition <- c("Size of the health system total population, which is used to calculate numbers of patients by age in the population",
+                "Percentage of patients in population that identify as having European ancestry. The default is the percentage of non-Hispanic whites across the US.",
+                "Percentage of patients in population that identify as having African ancestry. The default is the percentage of blacks or African Americans across the US.",
+                "Percentage of patients in population that identify as having Asian ancestry. The default is the percentage of Asians across the US.)",
+                "Age at which PGx testing is initiated in the population. The default assumes that testing begins at 55 years old, to utilize testing for a higher risk older population.",
+                "Percentage of the eligible patient population that is tested per year, given the starting age of testing. The default is set to 5% to capture a more conservative testing program.",
+                "Number of years over which a testing program is in place, assuming the level of testing captured by the percentage of patients tested input",
+                "Duration that the PGx alert system being modeled is in place",
+                "Effort in work-hours of IT build plus other related work (design discussions, project meetings, etc.) required to implement PGx alert system. The default is 200 hours based on estimates of build effort of PGx projects at UW.",
+                "Cost of ongoing maintenance of the PGx alerts and related systems as a percentage of the initial effort for build and implementation. The default is 20%, which is the common industry standard assumption for maintenance cost as a percentage of initial licensing + implementation costs.",
+                "Total number of alerts fired over lifespan of PGx-CDS alerting system",
                 "Number of alerts for patients at risk of being prescribed antiplatelet for ACS fired over lifespan of PGx-CDS alerting system",
                 "Number of alerts for patients at risk of being prescribed warfarin for AF fired over lifespan of PGx-CDS alerting system",
                 "Decrease in deaths from clopidogrel alerts compared to usual care",
@@ -30,7 +52,11 @@ definition <- c("Total number of alerts fired over lifespan of PGx-CDS alerting 
                 "Costs of building and maintaining clinical decision support alerts, based on total effort required for initial build and ongoing maintenance")
 variable_table <- tibble(Variable = variable,
                          Definition = definition)
-datatable(variable_table,
-          options = list(pageLength = 20,
-                                     sDom  = '<"top">rt<"bottom">'))
+variable_table %>%
+  kbl() %>%
+  kable_styling()
+# datatable(variable_table,
+#           rownames = FALSE,
+#           options = list(pageLength = 20,
+#                                      sDom  = '<"top">rt<"bottom">'))
 ```

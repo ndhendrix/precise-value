@@ -31,15 +31,21 @@ output: html_document
 ```{r econ_eval_table, echo = FALSE, warning = FALSE, message = FALSE}
 library(tidyverse)
 library(DT)
+library(knitr)
+library(kableExtra)
 intervention <- c("Intervention A", "Intervention B: usual care")
 total_costs <- c("$20,000", "$10,000")
 total_qalys <- c(3.6, 3.15)
 eval_table <- tibble(Intervention = intervention, 
                      `Total Costs` = total_costs, 
                      `Total QALYs` = total_qalys)
-datatable(eval_table,
-          options = list(pageLength = 10,
-                                     sDom  = '<"top">rt<"bottom">'))
+eval_table %>% 
+  kbl() %>%
+  kable_styling()
+# datatable(eval_table,
+#           rownames = FALSE,
+#           options = list(pageLength = 10,
+#                          sDom  = '<"top">rt<"bottom">'))
 ```
 
 ## Costs
