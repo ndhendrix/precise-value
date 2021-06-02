@@ -2,11 +2,11 @@
 library(shiny)
 library(shinydashboard)
 library(knitr)
-library(here)
+#library(here)
 library(tidyverse)
 library(DT)
-source(here("R", "make_inputs.R"))
-source(here("R", "model_parameters.R"))
+source("R/make_inputs.R")
+source("R/model_parameters.R")
 
 convertMenuItem <- function(mi,tabName) {
     mi$children[[1]]$attribs['data-toggle']="tab"
@@ -14,7 +14,7 @@ convertMenuItem <- function(mi,tabName) {
     mi
 }
 
-rmdfiles <- c(here("R", "econ_evaluation_primer.Rmd"), here("R", "variable_table.Rmd"))
+rmdfiles <- c("R/econ_evaluation_primer.Rmd", "R/variable_table.Rmd")
 sapply(rmdfiles, knit, quiet = T)
 
 # Module UI function
@@ -484,7 +484,7 @@ ui <- dashboardPage(
                                    box(title = tags$p("Project Background",
                                                       style = "font-size: 150%"),
                                        width = 12,
-                                       includeMarkdown(here("R", "background_markdown.Rmd")))
+                                       includeMarkdown("R/background_markdown.Rmd"))
                                    )
                             ),
                         fluidRow(
