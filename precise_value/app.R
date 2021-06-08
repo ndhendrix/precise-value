@@ -426,6 +426,12 @@ ui <- dashboardPage(
                                  )),
                     h2(
                         fluidRow(
+                            column(width = 12,
+                                   infoBoxOutput("conditional_value", width = NULL) #,
+                                   #tags$style("#conditional_value {width: 1000px;}")
+                            )
+                        ),
+                        fluidRow(
                             valueBoxOutput("n_alerts"),
                             valueBoxOutput("n_clo_alerts"),
                             valueBoxOutput("n_war_alerts")
@@ -455,13 +461,13 @@ ui <- dashboardPage(
                             valueBoxOutput("admin_cost_alert"),
                             offset = 2
                             )
-                        ),
-                        fluidRow(
-                            column(width = 12,
-                            infoBoxOutput("conditional_value") #,
-                            #tags$style("#conditional_value {width: 1000px;}")
-                            )
-                        )
+                        )#,
+                        # fluidRow(
+                        #     column(width = 12,
+                        #     infoBoxOutput("conditional_value") #,
+                        #     #tags$style("#conditional_value {width: 1000px;}")
+                        #     )
+                        # )
                     )
                     ),
             tabItem(tabName = "variables",
@@ -753,7 +759,9 @@ server <- function(input, output, session) {
             output$conditional_value <- renderInfoBox({
                 infoBox(
                     tags$p("CDS provides value for the cost", style = "font-size: 150%"),
-                    tags$p(paste0("ICER: $", format(data()$icer_discounted, big.mark = ",")),
+                    tags$p(paste0("Incremental Cost Effectiveness Ratio: $", 
+                                  format(data()$icer_discounted, big.mark = ","),
+                                  " per QALY"),
                            style = "font-size: 150%"),
                     color = "purple",
                     icon = icon("thumbs-up", lib = "glyphicon"),
