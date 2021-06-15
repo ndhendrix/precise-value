@@ -69,5 +69,5 @@ eval_table %>%
 * What is your willingness to pay (WTP) for one unit increase in effectiveness? 
 * US WTP between \$ 50K and \$ 150K per QALY gained.
 * How does the estimated ICER compare to your WTP?
-  * If ICER is lower than WTP, then consider implementing the tested intervention. 
+  * If ICER is lower than WTP, then consider implementing the tested intervention. Provides good value for the investment.
   * If ICER is higher than WTP, then consider implementing the alternative intervention.

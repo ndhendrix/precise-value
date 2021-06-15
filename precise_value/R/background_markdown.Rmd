@@ -19,7 +19,7 @@ body{ /* Normal  */
 ## PGx-CDS Alerts Background
 
 * PGx testing offers significant potential to guide prescribing, avoid adverse events, and improve health outcomes. 
-* CDS alerts that embeds PGx testing results provides opportunities that PGx testing results are delivered and utilized in clinical practice. 
+* CDS alerts that embed PGx testing results provides opportunities that PGx testing results are delivered and utilized in clinical practice. 
 
 ## PRECISE Value Model Summary
 
@@ -51,7 +51,7 @@ body{ /* Normal  */
     + Medical costs
     + Administrative costs
 * Clinical outcomes:
-    + Number of each type of adverse events averted due to the PGx-CDS alerting system
+    + Number of each type of adverse event averted due to the PGx-CDS alerting system
 * Economic evaluation:
     + Total costs of the PGx-CDS alerting system
     + Total QALYs gained due to the PGx-CDS alerting system
