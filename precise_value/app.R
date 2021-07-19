@@ -27,13 +27,15 @@ precisevalueUI <- function(id, label = "model inputs") {
         #numericInput(ns("p_l"), label = "Percentage Latinx:", value = 18),
         numericInput(ns("p_b"), label = "Percentage African Ancestry:", value = 13),
         numericInput(ns("p_a"), label = "Percentage Asian Ancestry:", value = 6),
-        sliderInput(ns("start_age"), label = "Starting Age of Screening:",
-                    min = 0, max = 80, value = 55, step = 1),
+        sliderInput(ns("age_range"), label = "Age Range for PGx Screening:",
+                    min = 18, max = 80, value = c(55, 65), step = 1),
         sliderInput(ns("test_rate"), label = "Percentage of Patients Tested Per Year (% of Population):",
                     min = 0, max = 100, value = 5, step = 1),  ##Joyce updated on 01/12/2021
-        sliderInput(ns("screen_dur"), label = "Number of Years Population is Tested:",
-                    min = 1, max = 25, value = 10, step = 1), ##Joyce updated on 01/12/2021
-        sliderInput(ns("t_horizon"), label = "Pharmacogenomic Alert Duration (Years):",
+        # sliderInput(ns("start_age"), label = "Starting Age of Screening:",
+        #             min = 0, max = 80, value = 55, step = 1),
+        # sliderInput(ns("screen_dur"), label = "Number of Years Population is Tested:",
+        #             min = 1, max = 25, value = 10, step = 1), ##Joyce updated on 01/12/2021
+        sliderInput(ns("t_horizon"), label = "PGx Alert Program Duration (Years):",
                     min = 1, max = 25, value = 10, step = 1),
         sliderInput(ns("startup_cost"), label = "Startup Effort (Hours of IT Build Effort):",
                     min = 5, max = 500, value = 200, step = 5),
@@ -53,11 +55,14 @@ precisevalueServer <- function(id) {
                     p_clo_w*(input$p_w/100) + 
                     p_clo_w*((100-(input$p_a + input$p_b + input$p_w))/100)  # population prevalence of clopidogrel variant
                 #p_war <- 1                                        # 09/22: we dont need variant prevalence
+                # update input parameters to use new dual slider for age range
+                screen_age_start <- input$age_range[1]
+                screen_age_duration <- input$age_range[2] - input$age_range[1]
                 # Population age distribution in probabilities. Notes added on: 01/23/2021
                 ages <- make_age_pattern() 
                 # Testing pattern in probabilities. All capped<= 100%.  Notes added on: 01/23/2021
-                test <- make_test_pattern(input$start_age, input$test_rate, 
-                                          input$screen_dur, input$t_horizon)
+                test <- make_test_pattern(screen_age_start, input$test_rate, 
+                                          screen_age_duration, input$t_horizon)
                 # Risk of getting a new drug. Notes added on: 01/23/2021
                 drug <- make_treat_prob()
 
@@ -377,7 +382,8 @@ precisevalueServer <- function(id) {
                              sum(CEA_results_discounted$no_alert_qaly)), 0),
                     table = outcomes,
                     clo_ae_table = clo_ae_table,
-                    war_ae_table = war_ae_table
+                    war_ae_table = war_ae_table,
+                    test_output = input$age_range
                 )
             })
 
@@ -461,13 +467,7 @@ ui <- dashboardPage(
                             valueBoxOutput("admin_cost_alert"),
                             offset = 2
                             )
-                        )#,
-                        # fluidRow(
-                        #     column(width = 12,
-                        #     infoBoxOutput("conditional_value") #,
-                        #     #tags$style("#conditional_value {width: 1000px;}")
-                        #     )
-                        # )
+                        )
                     )
                     ),
             tabItem(tabName = "variables",
@@ -783,24 +783,20 @@ server <- function(input, output, session) {
         }
     })
     
-    # output$conditional_value <- if (data()$icer_discounted < 100000){
-    #     renderInfoBox({
-    #         infoBox(
-    #             "CDS provides value for the cost",
-    #             paste0("ICER: $", format(data()$icer_discounted, big.mark = ",")),
-    #             icon = icon("thumbs-up", lib = "glyphicon")
-    #         )
-    #     })
-    # }
-    # else {
-    #     renderInfoBox({
-    #         infoBox(
-    #             "CDS does not provide value for the cost",
-    #             paste0("ICER: $", format(data()$icer_discounted, big.mark = ",")),
-    #             icon = icon("thumbs-down", lib = "glyphicon")
-    #         )
-    #     })
-    # }
+    # output$testing_slider_output_lower <- renderValueBox({
+    #     valueBox(value = tags$p(data()$test_output[1], 
+    #                             style = "font-size: 110%"),
+    #              subtitle = tags$p("Testing lower output of dual slider",
+    #                                style = "font-size: 100%"),
+    #              color = "purple")
+    # })
+    # output$testing_slider_output_upper <- renderValueBox({
+    #     valueBox(value = tags$p(data()$test_output[2],
+    #                             style = "font-size: 110%"),
+    #              subtitle = tags$p("Testing upper output of dual slider",
+    #                                style = "font-size: 100%"),
+    #              color = "purple")
+    # })
 
 }
 
