@@ -395,7 +395,7 @@ precisevalueServer <- function(id) {
 
 ui <- dashboardPage(
     skin = "purple",
-    dashboardHeader(title = tags$p("PRECISE Value", style = "font-size: 150%"),
+    dashboardHeader(title = "PRECISE Value",
                     titleWidth = 350),
     dashboardSidebar(
         width = 350,
