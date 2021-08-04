@@ -51,6 +51,10 @@ precisevalueServer <- function(id) {
             
             # The user's data, parsed into a data frame. Joyce updated on 01/12/2021
             data <- reactive({
+                validate(
+                    need(input$p_a + input$p_b + input$p_w <= 100,
+                         "Probabilities must sum to 100 or less")
+                )
                 p_clo <- p_clo_a*(input$p_a/100) + p_clo_b*(input$p_b/100) + 
                     p_clo_w*(input$p_w/100) + 
                     p_clo_w*((100-(input$p_a + input$p_b + input$p_w))/100)  # population prevalence of clopidogrel variant
