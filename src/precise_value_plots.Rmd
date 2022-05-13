@@ -1,0 +1,118 @@
+---
+title: "PRECISE Value Plots"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: fill
+runtime: shiny
+---
+
+```{r global, include=FALSE}
+library(flexdashboard)
+library(here)
+library(tidyverse)
+library(scales)
+library(plotly)
+source(here("R", "make_inputs.R"))
+source(here("R", "model_parameters.R"))
+```
+
+```{r}
+
+source(here("R", "precisevalue.R"))
+
+# source(here("src", "make_inputs.R")) # functions to generate starting data frames
+# source(here("src", "precise_value_base_values.R")) # initialize values
+# source(here("src", "precise_value_r_model.R")) # build model
+# source(here("src", "precise_value_psa.R")) # holds function for PSA
+# source(here("R", "precisevalue.R"))
+# return_list <- precise_value(start_age = 55, test_rate = 0.1,
+#                              screen_dur = 5, t_horizon = 20,
+#                              p_new_rx = 0.005)
+# outcomes <- return_list[[1]]
+# total <- return_list[[2]]
+```
+
+Inputs {.sidebar data-width=250}
+===================================== 
+
+```{r}
+precisevalueUI("model_inputs", "Model Inputs")
+```
+
+Summary
+===================================== 
+
+```{r}
+# ui <- fluidPage(
+#             textOutput("n_alerts"),
+#             textOutput("total_cost_no_alert"),
+#             textOutput("total_cost_alert"),
+#             textOutput("qaly_no_alert"),
+#             textOutput("qaly_alert"),
+#             dataTableOutput("table")
+# )
+
+server <- function(input, output, session) {
+    data <- precisevalueServer("model_inputs")
+
+    
+    output$table <- renderDataTable({
+        data()$table
+    })
+    output$n_alerts <- renderText(paste("Number of alerts: ", data()$n_alerts))
+    output$total_cost_no_alert <- renderText(paste("Total cost without alerts: ", data()$total_cost_no_alert))
+    output$total_cost_alert <- renderText(paste("Total cost with alerts: ", data()$total_cost_alert))
+    output$qaly_no_alert <- renderText(paste("QALY without alerts: ", data()$qaly_no_alert))
+    output$qaly_alert <- renderText(paste("QALY with alerts: ", data()$qaly_alert))
+}
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Background
+
+The output below represents the results of modeling the impact of a pharmacogenomic decision support implemented in a population with characteristics captured in the sidebar of this page.
+
+Row{.overall-values}
+-----------------------------------------------------------------------
+
+### Total number of alerts:
+
+`r fillCol(height = 600, flex = c(NA, 1), textOutput("n_alerts"))`
+
+### Total costs without alerts:
+
+`r renderText(data()$total_cost_no_alert)`
+
+### Total costs with alerts:
+
+`r renderText(data()$total_cost_alert)`
+
+Row{.overall-values}
+-----------------------------------------------------------------------
+
+### QALYs without alerts:
+
+`r renderText(data()$n_alerts)`
+
+### QALYs with alerts:
+
+`r renderText(data()$total_cost_no_alert)`
+
+### Cost per alert:
+
+`r renderText(data()$total_cost_alert)`
+
+Add ADEs - what level of detail?
+
+Row
+-----------------------------------------------------------------------
+
+### Table with yearly breakdown of outcomes
+
+
+
+Background
+===================================== 
