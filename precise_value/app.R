@@ -1,16 +1,12 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-
 
 library(shiny)
 library(shinydashboard)
-library(here)
+library(knitr)
+#library(here)
 library(tidyverse)
 library(DT)
-source(here("R", "make_inputs.R"))
-source(here("R", "model_parameters.R"))
+source("R/make_inputs.R")
+source("R/model_parameters.R")
 
 convertMenuItem <- function(mi,tabName) {
     mi$children[[1]]$attribs['data-toggle']="tab"
@@ -18,30 +14,33 @@ convertMenuItem <- function(mi,tabName) {
     mi
 }
 
+rmdfiles <- c("R/econ_evaluation_primer.Rmd", "R/variable_table.Rmd")
+sapply(rmdfiles, knit, quiet = T)
+
 # Module UI function
 precisevalueUI <- function(id, label = "model inputs") {
-    # `NS(id)` returns a namespace function, which was save as `ns` and will
-    # invoke later.
     ns <- NS(id)
     
     tagList(
-        numericInput(ns("pop_size"), label = "Population size:", value = 500000), ##Joyce updated on 01/12/2021
+        numericInput(ns("pop_size"), label = "Population Size:", value = 500000), ##Joyce updated on 01/12/2021
         numericInput(ns("p_w"), label = "Percentage European Ancestry:", value = 60),
         #numericInput(ns("p_l"), label = "Percentage Latinx:", value = 18),
         numericInput(ns("p_b"), label = "Percentage African Ancestry:", value = 13),
         numericInput(ns("p_a"), label = "Percentage Asian Ancestry:", value = 6),
-        sliderInput(ns("start_age"), label = "Starting Age of Screening:",
-                    min = 0, max = 100, value = 55, step = 1),
-        sliderInput(ns("test_rate"), label = "Proportion of Patients Tested Per Year:",
-                    min = 0, max = 0.3, value = 0.1, step = 0.01),  ##Joyce updated on 01/12/2021
-        sliderInput(ns("screen_dur"), label = "Screening Duration:",
-                    min = 1, max = 50, value = 10, step = 1), ##Joyce updated on 01/12/2021
-        sliderInput(ns("t_horizon"), label = "Time Horizon:",
-                    min = 5, max = 85, value = 20, step = 1),
+        sliderInput(ns("age_range"), label = "Age Range for PGx Screening:",
+                    min = 18, max = 80, value = c(55, 65), step = 1),
+        sliderInput(ns("test_rate"), label = "Percentage of Patients Tested Per Year (% of Population):",
+                    min = 0, max = 100, value = 5, step = 1),  ##Joyce updated on 01/12/2021
+        # sliderInput(ns("start_age"), label = "Starting Age of Screening:",
+        #             min = 0, max = 80, value = 55, step = 1),
+        # sliderInput(ns("screen_dur"), label = "Number of Years Population is Tested:",
+        #             min = 1, max = 25, value = 10, step = 1), ##Joyce updated on 01/12/2021
+        sliderInput(ns("t_horizon"), label = "PGx Alert Program Duration (Years):",
+                    min = 1, max = 25, value = 10, step = 1),
         sliderInput(ns("startup_cost"), label = "Startup Effort (Hours of IT Build Effort):",
-                    min = 5, max = 1000, value = 200, step = 5),
+                    min = 5, max = 500, value = 200, step = 5),
         sliderInput(ns("maint_cost"), label = "Maintenance Cost (Annual % of Startup Effort):",
-                    min = 0, max = 50, value = 20, step = 5)
+                    min = 0, max = 40, value = 20, step = 5)
     )
 }
 
@@ -52,15 +51,22 @@ precisevalueServer <- function(id) {
             
             # The user's data, parsed into a data frame. Joyce updated on 01/12/2021
             data <- reactive({
+                validate(
+                    need(input$p_a + input$p_b + input$p_w <= 100,
+                         "Probabilities must sum to 100 or less")
+                )
                 p_clo <- p_clo_a*(input$p_a/100) + p_clo_b*(input$p_b/100) + 
                     p_clo_w*(input$p_w/100) + 
                     p_clo_w*((100-(input$p_a + input$p_b + input$p_w))/100)  # population prevalence of clopidogrel variant
                 #p_war <- 1                                        # 09/22: we dont need variant prevalence
+                # update input parameters to use new dual slider for age range
+                screen_age_start <- input$age_range[1]
+                screen_age_duration <- input$age_range[2] - input$age_range[1]
                 # Population age distribution in probabilities. Notes added on: 01/23/2021
                 ages <- make_age_pattern() 
                 # Testing pattern in probabilities. All capped<= 100%.  Notes added on: 01/23/2021
-                test <- make_test_pattern(input$start_age, input$test_rate, 
-                                          input$screen_dur, input$t_horizon)
+                test <- make_test_pattern(screen_age_start, input$test_rate, 
+                                          screen_age_duration, input$t_horizon)
                 # Risk of getting a new drug. Notes added on: 01/23/2021
                 drug <- make_treat_prob()
 
@@ -144,7 +150,6 @@ precisevalueServer <- function(id) {
                 clo_outcomes$clo_noalert_NONCVDeath <- clo_outcomes$clo_n_alert * p_change_no_alert * NONCVDeath_change_clo
                 clo_outcomes$clo_alert_NONCVDeath <- clo_outcomes$clo_n_alert * p_change_alert * NONCVDeath_change_clo
                 
-                
                 # STEP 2: WARFARIN: Notes added on: 01/23/2021
                 # (1) get the final number of people who can benefit from alerts and PGx
                 
@@ -176,7 +181,9 @@ precisevalueServer <- function(id) {
                 #Clots
                 war_outcomes$war_noalert_clot <- war_outcomes$war_n_alert * p_change_no_alert * Clot_change_war
                 war_outcomes$war_alert_clot <- war_outcomes$war_n_alert * p_change_alert * Clot_change_war
-                
+                #Death:   #Joyce updated: 04/10/2021.
+                war_outcomes$war_noalert_death <- war_outcomes$war_n_alert * p_change_no_alert * Death_change_war
+                war_outcomes$war_alert_death <- war_outcomes$war_n_alert * p_change_alert * Death_change_war
                 
                 # STEP 3: Combine results from 2 drugs together
                 outcomes <- merge(clo_outcomes, war_outcomes, by = "year")
@@ -189,11 +196,11 @@ precisevalueServer <- function(id) {
                 # (1) Select relevant columns. 
                 # The number of alerts: 2 for clopidogrel, 27 for warfarin. 
                 # QALYs: 3, 4 for clopidogrel, 28, 29 for warfarin.
-                # Costs: 5, 6 for clopidogrel, 30, 31 for warfarin. & 36 for admin alert costs. 
-                CEAoutcomes_nodiscount <- outcomes[,c(1,2,27,3:6,28:31,36)] #select CEA outcomes (costs and QALYs)
-                CEAoutcomes_discount   <- outcomes[,c(1,2,27,3:6,28:31,36)] #select CEA outcomes (costs and QALYs)
+                # Costs: 5, 6 for clopidogrel, 30, 31 for warfarin. & 38 for admin alert costs. 
+                CEAoutcomes_nodiscount <- outcomes[,c(1,2,27,3:6,28:31,38)] #select CEA outcomes (costs and QALYs)
+                CEAoutcomes_discount   <- outcomes[,c(1,2,27,3:6,28:31,38)] #select CEA outcomes (costs and QALYs)
                 CLO_ADE<-outcomes[,c(1,2,7:26)]          
-                WAR_ADE<-outcomes[,c(1,27,32:35)]  
+                WAR_ADE<-outcomes[,c(1,27,32:37)]  
                 
                 # (2) Discount: CEAoutcomes_discount
                 for(i in 4:12) {
@@ -246,12 +253,14 @@ precisevalueServer <- function(id) {
                 ADE_results_war<-data.frame(noalert_Bleeding=double(),
                                             alert_Bleeding=double(),
                                             noalert_Clot=double(),
-                                            alert_Clot=double())
+                                            alert_Clot=double(),
+                                            noalert_Death=double(),
+                                            alert_Death=double())
                 for (i in seq(1:20)){
                     a<-i+2
                     ADE_results_clo[1,i]<-sum(CLO_ADE[,a])}
                 
-                for (i in seq(1:4)){
+                for (i in seq(1:6)){
                     a<-i+2
                     ADE_results_war[1,i]<-sum(WAR_ADE[,a])
                 }
@@ -271,20 +280,117 @@ precisevalueServer <- function(id) {
                 ADE_results_clo_alert <- ADE_results_clo %>% 
                     select(starts_with("alert")) %>%
                     mutate(total = rowSums(.))
+                clo_ae <- c("CV deaths", "Non-fatal MIs", "Stent Thromboses", 
+                            "Non-fatal intracranial bleeding", "Non-fatal extracranial bleeding", 
+                            "CABG bleeding", "CABG revascularizations",
+                            "PCI revascularizations")
+                clo_no_alert_freq <- c(sum(ADE_results_clo$noalert_CVDeath),
+                                       sum(ADE_results_clo$noalert_NonFatalMI), 
+                                       sum(ADE_results_clo$noalert_StentThrombosis), 
+                                       sum(ADE_results_clo$noalert_NonFatalIntracranial),
+                                       sum(ADE_results_clo$noalert_NonFatalExtracranial),
+                                       sum(ADE_results_clo$noalert_CABGBleeding),
+                                       sum(ADE_results_clo$noalert_CABGRevascularization),
+                                       sum(ADE_results_clo$noalert_PCIRevascularization)
+                                       )
+                clo_alert_freq <- c(sum(ADE_results_clo$alert_CVDeath),
+                                    sum(ADE_results_clo$alert_NonFatalMI), 
+                                    sum(ADE_results_clo$alert_StentThrombosis), 
+                                    sum(ADE_results_clo$alert_NonFatalIntracranial),
+                                    sum(ADE_results_clo$alert_NonFatalExtracranial),
+                                    sum(ADE_results_clo$alert_CABGBleeding),
+                                    sum(ADE_results_clo$alert_CABGRevascularization),
+                                    sum(ADE_results_clo$alert_PCIRevascularization)
+                )
+                clo_alert_diff <- c(sum(ADE_results_clo$alert_CVDeath)-
+                                        sum(ADE_results_clo$noalert_CVDeath),
+                                    sum(ADE_results_clo$alert_NonFatalMI)-
+                                        sum(ADE_results_clo$noalert_NonFatalMI), 
+                                    sum(ADE_results_clo$alert_StentThrombosis)-
+                                        sum(ADE_results_clo$noalert_StentThrombosis), 
+                                    sum(ADE_results_clo$alert_NonFatalIntracranial)-
+                                        sum(ADE_results_clo$noalert_NonFatalIntracranial),
+                                    sum(ADE_results_clo$alert_NonFatalExtracranial)-
+                                        sum(ADE_results_clo$noalert_NonFatalExtracranial),
+                                    sum(ADE_results_clo$alert_CABGBleeding)-
+                                        sum(ADE_results_clo$noalert_CABGBleeding),
+                                    sum(ADE_results_clo$alert_CABGRevascularization)-
+                                        sum(ADE_results_clo$noalert_CABGRevascularization),
+                                    sum(ADE_results_clo$alert_PCIRevascularization)-
+                                        sum(ADE_results_clo$noalert_PCIRevascularization)
+                )
+                clo_ae_table <- tibble(clo_ae, clo_no_alert_freq, clo_alert_freq, clo_alert_diff)
+                clo_ae_table <- clo_ae_table %>%
+                    mutate(across(where(is.numeric), ~ round(.x, 2)))
+                colnames(clo_ae_table) <- c("Adverse event", "Events without alerts", 
+                                            "Events with alerts", "Difference in Events")
+                
+                war_ae <- c("Deaths", "Clots", "Bleeds")
+                war_no_alert_freq <- c(sum(ADE_results_war$noalert_Death),
+                                       sum(ADE_results_war$noalert_Clot),
+                                       sum(ADE_results_war$noalert_Bleeding))
+                war_alert_freq <- c(sum(ADE_results_war$alert_Death),
+                                    sum(ADE_results_war$alert_Clot),
+                                    sum(ADE_results_war$alert_Bleeding))
+                war_alert_diff <- c(sum(ADE_results_war$alert_Death)-
+                                        sum(ADE_results_war$noalert_Death),
+                                    sum(ADE_results_war$alert_Clot)-
+                                        sum(ADE_results_war$noalert_Clot),
+                                    sum(ADE_results_war$alert_Bleeding)-
+                                        sum(ADE_results_war$noalert_Bleeding))
+                war_ae_table <- tibble(war_ae, war_no_alert_freq, war_alert_freq, war_alert_diff)
+                war_ae_table <- war_ae_table %>%
+                    mutate(across(where(is.numeric), ~ round(.x, 2)))
+                colnames(war_ae_table) <- c("Adverse event", "Events without alerts", 
+                                            "Events with alerts", "Difference in Events")
+
                 list(
                     n_alerts = sum(outcomes$clo_n_alert+outcomes$war_n_alert),
                     n_clo_alerts = sum(outcomes$clo_n_alert),
                     n_war_alerts = sum(outcomes$war_n_alert),
                     total_cost_no_alert = sum(CEA_results_discounted$no_alert_cost),
                     total_cost_alert = sum(CEA_results_discounted$alert_cost_total),
+                    medical_cost_alert = sum(CEA_results_discounted$alert_cost_medical),
+                    admin_cost_alert = sum(CEA_results_discounted$alert_cost_admin),
+                    clo_non_fatal_mi_no_alert = sum(ADE_results_clo$noalert_NonFatalMI),
+                    clo_non_fatal_mi_alert = sum(ADE_results_clo$alert_NonFatalMI),
+                    clo_stent_thrombosis_no_alert = sum(ADE_results_clo$noalert_StentThrombosis),
+                    clo_stent_thrombosis_alert = sum(ADE_results_clo$alert_StentThrombosis),
+                    clo_cabg_revasc_no_alert = sum(ADE_results_clo$noalert_CABGRevascularization),
+                    clo_cabg_revasc_alert = sum(ADE_results_clo$lert_CABGRevascularization),
+                    clo_pci_revasc_no_alert = sum(ADE_results_clo$noalert_PCIRevascularization),
+                    clo_pci_revasc_alert = sum(ADE_results_clo$alert_PCIRevascularization),
+                    clo_non_fatal_ic_bleed_no_alert = sum(ADE_results_clo$noalert_NonFatalIntracranial),
+                    clo_non_fatal_ic_bleed_alert = sum(ADE_results_clo$alert_NonFatalIntracranial),
+                    clo_non_fatal_ec_bleed_no_alert = sum(ADE_results_clo$noalert_NonFatalExtracranial),
+                    clo_non_fatal_ec_bleed_alert = sum(ADE_results_clo$alert_NonFatalExtracranial),
+                    clo_cabg_bleed_no_alert = sum(ADE_results_clo$noalert_CABGBleeding),
+                    clo_cabg_bleed_alert = sum(ADE_results_clo$alert_CABGBleeding),
+                    war_bleed_no_alert = sum(ADE_results_war$noalert_Bleeding),
+                    war_bleed_alert = sum(ADE_results_war$alert_Bleeding),
+                    war_clot_no_alert = sum(ADE_results_war$noalert_Clot),
+                    war_clot_alert = sum(ADE_results_war$alert_Clot),
+                    war_death_no_alert = sum(ADE_results_war$noalert_Death),
+                    war_death_alert = sum(ADE_results_war$alert_Death),
                     n_clo_no_alert_ade = ADE_results_clo_noalert$total,
                     n_clo_alert_ade = ADE_results_clo_alert$total,
                     qaly_no_alert = sum(CEA_results_discounted$no_alert_qaly),
                     qaly_alert = sum(CEA_results_discounted$alert_qaly),
-                    table = outcomes
+                    inc_qaly_disc = round(sum(CEA_results_discounted$alert_qaly) - 
+                                              sum(CEA_results_discounted$no_alert_qaly), 1),
+                    inc_cost_disc = round(sum(CEA_results_discounted$alert_cost_total) - 
+                                              sum(CEA_results_discounted$no_alert_cost), 0),
+                    icer_discounted = round((sum(CEA_results_discounted$alert_cost_total) - 
+                                           sum(CEA_results_discounted$no_alert_cost)) /
+                        (sum(CEA_results_discounted$alert_qaly) - 
+                             sum(CEA_results_discounted$no_alert_qaly)), 0),
+                    table = outcomes,
+                    clo_ae_table = clo_ae_table,
+                    war_ae_table = war_ae_table,
+                    test_output = input$age_range
                 )
             })
-            
+
             # Return the reactive that yields the data frame
             return(data)
         }
@@ -299,116 +405,403 @@ ui <- dashboardPage(
         width = 350,
         tags$head(
             tags$style(HTML("
-                      .sidebar { height: 95vh; overflow-y: auto; }
+                      .sidebar { height: 100vh; overflow-y: auto; }
                       " )
             )
         ),
         sidebarMenu(
             id = "sbMenu",
             menuItem("Summary", tabName = "summary", icon = icon("dashboard")),
-            menuItem("Year by year numbers", tabName = "table", icon = icon("table")),
-            menuItem("Background information", tabName = "info", icon = icon("table")),
+            menuItem("Clinical event details", tabName = "ades", icon = icon("table")),
+            menuItem("Economic value details", tabName = "value", icon = icon("table")),
+            menuItem("Variable details", tabName = "variables", icon = icon("table")),
+            menuItem("Background info & primer", tabName = "info", icon = icon("table")),
             menuItem("Data Selection", tabName = "ds", startExpanded = TRUE,
                      precisevalueUI("model_inputs", "Model Inputs")))
         ),
     dashboardBody(
         tags$head( 
-            tags$style(HTML(".main-sidebar { font-size: 20px; }")) #change the font size to 20
+            tags$style(HTML(".main-sidebar { font-size: 24px; }"))
         ),
         tabItems(
             tabItem(tabName = "summary",
+                    box(title = tags$p("Welcome to PRECISE-Value!", style = "font-size: 150%"),
+                        solidHeader = F,
+                        collapsible = F,
+                        width = 12,
+                        fluidRow(column(width = 8, textOutput("welcome_text")),
+                                 column(width = 4, align = "center",
+                                        img(src="Choice-WDeptSig-Web-Purple.jpg", width = 400),
+                                        img(src="DLMP_logo.jpg", width = 300))
+                                 )),
                     h2(
-                        # sidebarPanel(
-                        #     precisevalueUI("model_inputs", "Model Inputs")
-                        # ),
+                        fluidRow(
+                            column(width = 12,
+                                   infoBoxOutput("conditional_value", width = NULL) #,
+                                   #tags$style("#conditional_value {width: 1000px;}")
+                            )
+                        ),
                         fluidRow(
                             valueBoxOutput("n_alerts"),
                             valueBoxOutput("n_clo_alerts"),
                             valueBoxOutput("n_war_alerts")
-                            #box(textOutput("qaly_no_alert")),
-                            #box(textOutput("qaly_alert"),)
                         ),
                         fluidRow(
-                            valueBoxOutput("total_cost_no_alert"),
-                            valueBoxOutput("total_cost_alert")
-                        ) #,
-                        # fluidRow(
-                        #     valueBoxOutput("n_clo_no_alert_ade"),
-                        #     valueBoxOutput("n_clo_alert_ade")
-                        # )
+                            box(title = tags$p("Yearly Clopidogrel Alerts", 
+                                               style = "font-size: 150%"),
+                                plotOutput("clo_alerts_by_year")),
+                            box(title = tags$p("Yearly Warfarin Alerts", 
+                                               style = "font-size: 150%"),
+                                plotOutput("war_alerts_by_year"))
+                        ),
+                        fluidRow(
+                            valueBoxOutput("alert_decreased_clo_deaths"),
+                            valueBoxOutput("alert_decreased_clo_acs_events"),
+                            valueBoxOutput("alert_clo_bleeding_events")
+                            
+                        ),
+                        fluidRow(
+                            valueBoxOutput("alert_decreased_war_deaths"),
+                            valueBoxOutput("alert_decreased_war_clots"),
+                            valueBoxOutput("alert_war_bleeding_events")
+                        ),
+                        fluidRow(
+                            column(width = 12,
+                            valueBoxOutput("change_medical_cost"),
+                            valueBoxOutput("admin_cost_alert"),
+                            offset = 2
+                            )
+                        )
                     )
                     ),
-            tabItem(tabName = "table",
+            tabItem(tabName = "variables",
+                    fluidPage(
+                        fluidRow(
+                            column(width = 12,
+                                   box(title = tags$p("Variable Definitions",
+                                                      style = "font-size: 150%"),
+                                       width = 12,
+                                       #uiOutput("variable_table"))
+                                       includeMarkdown("variable_table.md"))
+                                   )
+                            )
+                        )
+                    ),
+            tabItem(tabName = "info",
+                    fluidPage(
+                        fluidRow(
+                            column(width = 12,
+                                   box(title = tags$p("Project Background",
+                                                      style = "font-size: 150%"),
+                                       width = 12,
+                                       includeMarkdown("R/background_markdown.Rmd"))
+                                   )
+                            ),
+                        fluidRow(
+                            column(width = 12,
+                            box(title = tags$p("Economic Evaluation Primer",
+                                           style = "font-size: 150%"),
+                            width = 12,
+                            #uiOutput("econ_eval_primer"))
+                            includeMarkdown("econ_evaluation_primer.md"))
+                            )
+                        )
+                        )
+                    ),
+            tabItem(tabName = "value",
+                    box(title = tags$p("Economic value background", 
+                                       style = "font-size: 150%"),
+                        solidHeader = F,
+                        collapsible = F,
+                        width = 12,
+                        fluidRow(column(width = 12, textOutput("value_text")))),
                     h2(
-                        # sidebarPanel(
-                        #     precisevalueUI("model_inputs", "Model Inputs")
-                        # ),
+                        fluidRow(
+                            column(width = 12,
+                                   valueBoxOutput("total_cost_alert"),
+                                   valueBoxOutput("total_cost_no_alert"),
+                                   offset = 2
+                            )
+                        ),
+                        fluidRow(
+                            column(width = 12,
+                                   valueBoxOutput("qaly_alert"),
+                                   valueBoxOutput("qaly_no_alert"),
+                                   offset = 2
+                            )
+                        ),
+                        fluidRow(
+                            column(width = 12,
+                                   valueBoxOutput("icer"),
+                                   offset = 4
+                            )
+                        )
+                    )),
+            tabItem(tabName = "ades",
+                    box(title = tags$p("Clinical events background", 
+                                       style = "font-size: 150%"),
+                        solidHeader = F,
+                        collapsible = F,
+                        width = 12,
+                        fluidRow(column(width = 12, textOutput("events_text")))),
+                    h2(
                         fluidRow(
                             column(width = 12,
                                    box(
-                                       title = "All data", width = NULL, status = "primary",
-                                       div(style = 'overflow-x: scroll', DT::dataTableOutput('table'))
+                                       title = tags$p("Clopidogrel adverse events",
+                                                      style = "font-size: 150%"), 
+                                       width = NULL,
+                                       div(style = 'overflow-x: scroll', DT::dataTableOutput('clo_ae_table'))
+                                       )
+                                   ) 
+                            ),
+                        fluidRow(
+                            column(width = 12,
+                                   box(
+                                       title = tags$p("Warfarin adverse events",
+                                                      style = "font-size: 150%"), 
+                                       width = NULL,
+                                       div(style = 'overflow-x: scroll', DT::dataTableOutput('war_ae_table'))
+                                       )
                                    )
-                        ) 
+                            )
+                        )
                     )
-                    )),
-            tabItem(tabName = "info",
-                h2(
-                    
                 )
             )
             )
-    )
-    )
+    
+    
 
 
 server <- function(input, output, session) {
     data <- precisevalueServer("model_inputs")
-   
-    output$table <- DT::renderDataTable({
-        DT::datatable(data()$table, 
-                      options = list(pageLength = 10))
-    })
+    
+    output$welcome_text <- renderText("This web application estimates the value of developing and implementing clinical decision support (CDS) alerts for pharmacogenomics (PGx), using a prototype decision-analytic model. After using the input bar on the left to provide data about your health system or scenario you'd like to model, the output on the main panel of each tab in the app will dynamically adjust to show the impact of implementing CDS. PGx and CDS for 2 commonly prescribed drugs - clopidogrel and warfarin - are modeled. Comparisons between alerts and no alerts assume the baseline level of PGx testing is identical in both comparison groups. A detailed definition of any input variable or output in a value box can be found in the Variable details tab.")
+    output$events_text <- renderText("The data on this tab summarize the change in the expected number of specific clinical events under 2 conditions: 1) no clinical decision support alerts are used and 2) clinical decision support alerts to guide either the use of clopidogrel or the use of warfarin are implemented. At baseline, without alerts there is some change in medical therapy, so changes in clinical events represent the impact of those changes to treatment. With alerts, there is an increased frequency of changes to medical treatment, which then impacts the number of events.")
+    output$value_text <- renderText("The data on this tab summarize the calculated value of alerts compared with no alerts. Costs represent the total costs associated with both changes to medical therapy (shifting to higher cost drugs) and build and maintenance of clinical decision support. Quality adjusted life years (QALYs) represent the incremental change in QALYs when alerts are used vs. when they are not. The incremental cost effectiveness ratio (ICER) represents the incremental costs of deploying the alerts, divided by the incremental QALYs when deploying the alerts, to reflect costs per QALY gained (or lost) by alerting.")
     output$n_alerts <- renderValueBox({
         valueBox(
-            round(data()$n_alerts, 0), "Total number of alerts",
+            value = tags$p(round(data()$n_alerts, 0), style = "font-size: 110%"), 
+            subtitle = tags$p("Total number of alerts", style = "font-size: 100%;"),
             color = "purple"
         )
     })
     output$n_clo_alerts <- renderValueBox({
         valueBox(
-            round(data()$n_clo_alerts, 0), "Clopidogrel alerts",
+            value = tags$p(round(data()$n_clo_alerts, 0), style = "font-size: 110%"), 
+            subtitle = tags$p("Clopidogrel alerts", style = "font-size: 100%;"),
             color = "purple"
         )
     })
     output$n_war_alerts <- renderValueBox({
         valueBox(
-            round(data()$n_war_alerts, 0), "Warfarin alerts",
+            value = tags$p(round(data()$n_war_alerts, 0), style = "font-size: 110%"), 
+            subtitle = tags$p("Warfarin alerts", style = "font-size: 100%;"),
             color = "purple"
         )
     })
-    output$total_cost_no_alert <- renderValueBox({
-        valueBox(paste0("$", format(round(data()$total_cost_no_alert, 0), big.mark = ",")), 
-                 "Total cost without alerts",
+    output$clo_alerts_by_year <- renderPlot(
+        ggplot(data()$table, aes(x = year, y = round(clo_n_alert, 0))) +
+            geom_bar(stat = "identity") +
+            theme_bw(base_size = 14) +
+            labs(x = "Year", y = "Annual number of alerts")
+    )
+    output$war_alerts_by_year <- renderPlot(
+        ggplot(data()$table, aes(x = year, y = round(war_n_alert, 0))) +
+            geom_bar(stat = "identity") +
+            theme_bw(base_size = 14) +
+            labs(x = "Year", y = "Annual number of alerts")
+    )
+    output$alert_decreased_clo_deaths <- renderValueBox({
+        valueBox(value = tags$p(round(-(sum(data()$table$clo_alert_CVDeath))-
+                           (sum(data()$table$clo_noalert_CVDeath)), 1),
+                           style = "font-size: 110%"),
+                 subtitle = tags$p("Deaths prevented by clopidogrel alerts",
+                                   style = "font-size: 100%"),
                  color = "yellow")
+    })
+    output$alert_decreased_clo_acs_events <- renderValueBox({
+        valueBox(value = tags$p(-round((data()$clo_non_fatal_mi_alert+data()$clo_stent_thrombosis_alert+
+                           data()$clo_cabg_revasc_alert+data()$clo_pci_revasc_alert)-
+                           (data()$clo_non_fatal_mi_no_alert+data()$clo_stent_thrombosis_no_alert+
+                                data()$clo_cabg_revasc_no_alert+data()$clo_pci_revasc_no_alert), 1),
+                           style = "font-size: 110%"),
+                 subtitle = tags$p("Clinical events prevented by clopidogrel alerts",
+                                   style = "font-size: 100%"),
+                 color = "yellow"
+        )
+    })
+    output$alert_clo_bleeding_events <- renderValueBox({
+        valueBox(value = tags$p(round((data()$clo_non_fatal_ic_bleed_alert+data()$clo_non_fatal_ec_bleed_alert+
+                            data()$clo_cabg_bleed_alert)-
+                           (data()$clo_non_fatal_ic_bleed_no_alert+data()$clo_non_fatal_ec_bleed_no_alert+
+                                data()$clo_cabg_bleed_no_alert), 1),
+                           style = "font-size: 110%"),
+                 subtitle = tags$p("Change in bleeding events due to clopidogrel alerts",
+                                   style = "font-size: 100%"),
+                 color = "yellow"
+        )
+    })
+    output$alert_decreased_war_deaths <- renderValueBox({
+        valueBox(value = tags$p(-round((data()$war_death_alert)-(data()$war_death_no_alert), 1),
+                                style = "font-size: 110%"),
+                 subtitle = tags$p("Deaths prevented by warfarin alerts",
+                                   style = "font-size: 100%"),
+                 color = "yellow"
+        )
+    })
+    output$alert_decreased_war_clots <- renderValueBox({
+        valueBox(value = tags$p(-round((data()$war_clot_alert)-(data()$war_clot_no_alert), 1),
+                                style = "font-size: 110%"),
+                 subtitle = tags$p("Clinical events (clots) prevented due to warfarin alerts",
+                                   style = "font-size: 100%"),
+                 color = "yellow"
+        )
+    })
+    output$alert_war_bleeding_events <- renderValueBox({
+        valueBox(value = tags$p(round((data()$war_bleed_alert)-(data()$war_bleed_no_alert), 1),
+                                style = "font-size: 110%"),
+                 subtitle = tags$p("Change in bleeding events due to warfarin alerts",
+                                   style = "font-size: 100%"),
+                 color = "yellow"
+        )
+    })
+    output$alert_decreased_mi <- renderValueBox({
+        valueBox(value = tags$p(round(-(sum(data()$table$clo_alert_NonfatalMI))-
+                     (sum(data()$table$clo_noalert_NonfatalMI)), 0),
+                     style = "font-size: 110%"),
+                 subtitle = tags$p("Non-fatal MIs prevented by clopidogrel alerts",
+                                   style = "font-size: 100%"),
+                 color = "yellow")
+    })
+    output$total_cost_no_alert <- renderValueBox({
+        valueBox(value = tags$p(paste0("$", format(round(data()$total_cost_no_alert, 0), big.mark = ",")),
+                                style = "font-size: 110%"), 
+                 subtitle = tags$p("Total cost without alerts",
+                                   style = "font-size: 100%"),
+                 color = "purple")
     })
     output$total_cost_alert <- renderValueBox({
-        valueBox(paste0("$", format(round(data()$total_cost_alert, 0), big.mark = ",")), 
-                 "Total cost with alerts",
-                 color = "yellow")
+        valueBox(value = tags$p(paste0("$", format(round(data()$total_cost_alert, 0), big.mark = ",")),
+                                style = "font-size: 110%"), 
+                 subtitle = tags$p("Total cost with alerts",
+                                   style = "font-size: 100%"),
+                 color = "purple")
+    })
+    output$change_medical_cost <- renderValueBox({
+        valueBox(value = tags$p(paste0("$", format(round(data()$medical_cost_alert-data()$total_cost_no_alert, 0), 
+                                    big.mark = ",")),
+                                style = "font-size: 110%"),
+                 subtitle = tags$p("Change in medical costs with alerts",
+                                   style = "font-size: 100%"),
+                 color = "purple")
+    })
+    output$medical_cost_alert <- renderValueBox({
+        valueBox(value = tags$p(paste0("$", format(round(data()$medical_cost_alert, 0), big.mark = ",")),
+                                style = "font-size: 110%"), 
+                 subtitle = tags$p("Cost of medical therapy with alerts",
+                                   style = "font-size: 100%"),
+                 color = "purple")
+    })
+    output$admin_cost_alert <- renderValueBox({
+        valueBox(value = tags$p(paste0("$", format(round(data()$admin_cost_alert, 0), big.mark = ",")),
+                                style = "font-size: 110%"), 
+                 subtitle = tags$p("Build and maintenance cost of alerts",
+                                   style = "font-size: 100%"),
+                 color = "purple")
     })
     output$n_clo_no_alert_ade <- renderValueBox({
-        valueBox(round(data()$n_clo_no_alert_ade, 0), 
+        valueBox(round(data()$n_clo_no_alert_ade, 1), 
                  "Clopidogrel adverse drug events without alerts",
                  color = "purple")
     })
     output$n_clo_alert_ade <- renderValueBox({
-        valueBox(round(data()$n_clo_alert_ade, 0), 
+        valueBox(round(data()$n_clo_alert_ade, 1), 
                  "Clopidogrel adverse drug events with alerts",
                  color = "purple")
     })
-    output$qaly_no_alert <- renderText(paste("QALY without alerts: ", data()$qaly_no_alert))
-    output$qaly_alert <- renderText(paste("QALY with alerts: ", data()$qaly_alert))
+    output$icer <- renderValueBox({
+        valueBox(value = tags$p(paste0("$", format(data()$icer_discounted, big.mark = ",")),
+                                style = "font-size: 110%"),
+                 subtitle = tags$p("Incremental cost effectiveness ratio (ICER)",
+                                   style = "font-size: 100%"),
+                 color = "purple")
+    })
+    output$qaly_no_alert <- renderValueBox({
+        valueBox(value = tags$p(round(data()$qaly_no_alert, 2),
+                                style = "font-size: 110%"),
+                 subtitle = tags$p("Quality-adjusted life years (QALYs) without alerts",
+                                   style = "font-size: 100%"),
+                 color = "purple")
+    })
+    output$qaly_alert <- renderValueBox({
+        valueBox(value = tags$p(round(data()$qaly_alert, 2),
+                                style = "font-size: 110%"),
+                 subtitle = tags$p("Quality-adjusted life years (QALYs) with alerts",
+                                   style = "font-size: 100%"),
+                 color = "purple")
+    })
+    output$clo_ae_table <- DT::renderDataTable({
+        DT::datatable(data()$clo_ae_table, 
+                      options = list(pageLength = 10,
+                                     sDom  = '<"top">rt<"bottom">'))
+    })
+    output$war_ae_table <- DT::renderDataTable({
+        DT::datatable(data()$war_ae_table, 
+                      options = list(pageLength = 10,
+                                     sDom  = '<"top">rt<"bottom">'))
+    })
+    output$econ_eval_primer <- renderUI({
+        HTML(markdown::markdownToHTML(knit(here("R", "econ_evaluation_primer.html"), quiet = TRUE)))
+    })
+    output$variable_table <- renderUI({
+        HTML(markdown::markdownToHTML(knit(here("R", "variable_table.html"), quiet = TRUE)))
+    })
+    observe({
+        if (data()$icer_discounted < 100000) {
+            output$conditional_value <- renderInfoBox({
+                infoBox(
+                    tags$p("CDS provides value for the cost", style = "font-size: 150%"),
+                    tags$p(paste0("Incremental Cost Effectiveness Ratio: $", 
+                                  format(data()$icer_discounted, big.mark = ","),
+                                  " per QALY"),
+                           style = "font-size: 150%"),
+                    color = "purple",
+                    icon = icon("thumbs-up", lib = "glyphicon"),
+                    width = NULL
+                )
+            })
+        }
+        else {
+            output$conditional_value <- renderInfoBox({
+                infoBox(
+                    tags$p("CDS does not provide value for the cost", style = "font-size: 150%"),
+                    tags$p(paste0("ICER: $", format(data()$icer_discounted, big.mark = ",")),
+                           style = "font-size: 150%"),
+                    color = "purple",
+                    icon = icon("thumbs-down", lib = "glyphicon"),
+                    width = NULL
+                )
+            })
+        }
+    })
+    
+    # output$testing_slider_output_lower <- renderValueBox({
+    #     valueBox(value = tags$p(data()$test_output[1], 
+    #                             style = "font-size: 110%"),
+    #              subtitle = tags$p("Testing lower output of dual slider",
+    #                                style = "font-size: 100%"),
+    #              color = "purple")
+    # })
+    # output$testing_slider_output_upper <- renderValueBox({
+    #     valueBox(value = tags$p(data()$test_output[2],
+    #                             style = "font-size: 110%"),
+    #              subtitle = tags$p("Testing upper output of dual slider",
+    #                                style = "font-size: 100%"),
+    #              color = "purple")
+    # })
+
 }
 
 shinyApp(ui, server)
